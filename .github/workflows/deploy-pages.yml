@@ -1,0 +1,43 @@
+# 測試環境：推送到 main 時，建置前台並部署到 GitHub Pages。
+# 注意：GitHub Pages 網站預設對網際網路公開（僅 GitHub Enterprise Cloud 提供存取控制的私有 Pages）。
+# 各 action 版本為撰寫時（2026-10）所知的主要版本，啟用前請至 GitHub Marketplace 確認仍為維護中版本。
+name: Deploy test site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "assets/**", "data/content.json", "scripts/build.py", ".github/workflows/deploy-pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 驗證 content.json 格式
+        run: python3 -c "import json; json.load(open('data/content.json', encoding='utf-8'))"
+      - name: 建置（測試環境，強制 noindex、移除校稿欄位）
+        run: python3 scripts/build.py --env test --out dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

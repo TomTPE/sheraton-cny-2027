@@ -1,0 +1,10 @@
+# CMS 執行期檔案：不可進版控
+.cms-tokens.json
+data/draft.json
+data/revisions/
+data/audit.log
+assets/uploads/
+# 建置產物
+dist/
+__pycache__/
+.DS_Store

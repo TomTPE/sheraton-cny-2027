@@ -1,0 +1,310 @@
+{
+  "meta": {
+    "siteVersion": "2.0.0",
+    "revision": 1,
+    "updatedAt": "2026-10-23T18:00:00+08:00",
+    "updatedBy": "system",
+    "stage": "preview",
+    "noindex": true,
+    "title": "團圓有席｜台北喜來登大飯店 2027 新春餐飲",
+    "description": "台北喜來登大飯店 2027 丁未羊年新春：外帶年菜、餐廳除夕及春節餐價、宴會廳圍爐、新春館內活動與伴手禮。"
+  },
+
+  "brand": {
+    "note": "Digital Black、White、Champagne 取自 Sheraton Digital Guidelines（2019）；深緋紅、朱砂紅、暖象牙、金箔為 2027 活動提案色，待品牌核准。前台只讀取本區色彩，後台只能從 approvedPalette 選色。",
+    "approvedPalette": [
+      { "name": "Digital Black", "hex": "#1C1C1C", "source": "Sheraton Digital Guidelines" },
+      { "name": "White", "hex": "#FFFFFF", "source": "Sheraton Digital Guidelines" },
+      { "name": "Champagne", "hex": "#F7D6B4", "source": "Sheraton Digital Guidelines" },
+      { "name": "Warm Gray", "hex": "#6F625D", "source": "Sheraton Digital Guidelines" },
+      { "name": "Linen", "hex": "#EFEAE4", "source": "Sheraton Digital Guidelines" },
+      { "name": "深緋紅", "hex": "#451B1D", "source": "2027 活動提案色（待核准）" },
+      { "name": "夜緋紅", "hex": "#220C0E", "source": "2027 活動提案色（待核准）" },
+      { "name": "朱砂紅", "hex": "#A52A25", "source": "2027 活動提案色（待核准）" },
+      { "name": "暖象牙", "hex": "#F5EFE6", "source": "2027 活動提案色（待核准）" },
+      { "name": "金箔", "hex": "#C9A26B", "source": "2027 活動提案色（待核准，僅作裝飾與按鈕材質）" }
+    ],
+    "tokens": {
+      "ink": "#1C1C1C",
+      "white": "#FFFFFF",
+      "champagne": "#F7D6B4",
+      "muted": "#6F625D",
+      "linen": "#EFEAE4",
+      "crimson": "#451B1D",
+      "night": "#220C0E",
+      "red": "#A52A25",
+      "ivory": "#F5EFE6",
+      "gold": "#C9A26B"
+    },
+    "fonts": {
+      "serif": "Noto Serif TC",
+      "serifWeights": [300, 500],
+      "serifLicense": "SIL Open Font License 1.1",
+      "sans": "系統黑體（PingFang TC／Microsoft JhengHei）"
+    },
+    "logo": {
+      "onDark": "assets/img/logo-white.png",
+      "onLight": "assets/img/logo.png",
+      "alt": "Sheraton Grand Taipei Hotel 台北喜來登大飯店",
+      "rules": [
+        "深色底使用白色反白標誌，淺色底使用彩色標誌（Sheraton Digital Guidelines：White / Color Brand Logo）。",
+        "數位用途不顯示「EST 1937」（同上指南）。",
+        "建議格式為 SVG；目前使用官網 PNG，待取得 MAL 正式檔案。",
+        "標誌不得變形、改色、加效果或與其他圖形重組；周圍保留至少標誌 S 圓徽高度的安全空間（一般慣例，待品牌窗口確認）。"
+      ]
+    }
+  },
+
+  "contacts": {
+    "main": { "label": "飯店總機", "tel": "+886223215511", "display": "02-2321-5511" },
+    "fax": "02-2394-4240",
+    "email": "sheraton@sheratongrandtaipei.com",
+    "lounge": { "label": "大廳酒吧", "tel": "+886223211818", "display": "02-2321-1818" },
+    "address": "100 台北市中正區忠孝東路一段 12 號",
+    "taxId": "70471881"
+  },
+
+  "nav": [
+    { "id": "takeaway", "label": "外帶年菜" },
+    { "id": "dining", "label": "餐廳內用" },
+    { "id": "banquet", "label": "宴會廳" },
+    { "id": "events", "label": "館內活動" },
+    { "id": "gifts", "label": "通路伴手禮" },
+    { "id": "faq", "label": "須知" }
+  ],
+
+  "hero": {
+    "eyebrow": "2027 丁未羊年",
+    "title": ["團圓", "有席"],
+    "lead": "星級年菜外帶回家、除夕到初五餐廳留席、新春好禮與館內節慶活動，今年的團圓，交給喜來登安排。",
+    "image": "assets/img/guest.jpg",
+    "imageAlt": "一桌中式年菜：清蒸魚、佛跳牆、燒味與冷盤（往年年菜影像，示意）",
+    "imageStatus": "reference",
+    "scenes": [
+      { "kicker": "外帶年菜", "title": "吉羊納福，宅配到府", "text": "宴會廳大廚團隊冷凍年菜，早鳥預購每組 NT$9,888。", "target": "takeaway" },
+      { "kicker": "餐廳內用", "title": "除夕到初五，為你留席", "text": "十二廚自助餐與大廳酒吧，選日期即可查餐價與訂位。", "target": "dining" },
+      { "kicker": "新春好禮", "title": "一盒心意，體面拜年", "text": "人氣伴手禮線上購買，企業大量採購專人服務。", "target": "gifts" }
+    ]
+  },
+
+  "ctaTypes": {
+    "phone": { "label": "電話訂購", "icon": "phone", "note": "撥打電話" },
+    "booking": { "label": "線上訂位", "icon": "calendar", "note": "前往 TableCheck 訂位" },
+    "buy": { "label": "線上購買", "icon": "bag", "note": "前往官方線上購物" },
+    "inquiry": { "label": "電話洽詢", "icon": "phone", "note": "撥打電話洽詢" },
+    "link": { "label": "了解更多", "icon": "arrow", "note": "開啟官網頁面" },
+    "anchor": { "label": "前往", "icon": "arrow", "note": "移至本頁區塊" }
+  },
+
+  "takeaway": {
+    "title": "外帶年菜",
+    "lead": "免備料、免顧火，五星飯店的團圓年菜直接上桌。宴會廳「吉羊納福」已開放預購；各餐廳年菜品項公布後陸續上架。",
+    "categories": [
+      { "id": "all", "label": "全部" },
+      { "id": "frozen", "label": "冷凍宅配" },
+      { "id": "set", "label": "餐廳年菜套組" },
+      { "id": "single", "label": "單品年菜" }
+    ],
+    "items": [
+      {
+        "id": "tk-jiyang",
+        "status": "onsale",
+        "featured": true,
+        "category": "frozen",
+        "venue": "宴會廳",
+        "tag": "2027 搶先預購",
+        "name": "吉羊納福冷凍年菜組",
+        "serve": "5–6 人份",
+        "price": 9888,
+        "originalPrice": 12888,
+        "priceNote": "2026/12/31 前預付早鳥價",
+        "periods": [
+          { "label": "預購", "value": "即日起至 2027/01/22" },
+          { "label": "宅配", "value": "2027/02/01 – 02/04" }
+        ],
+        "desc": "三十年功力的宴會廳大廚團隊親手烹製，匯聚年節經典與創意美味。",
+        "menu": [
+          "六喜迎春開胃菜（麻香蒜味鹿茸菇、泡椒雞肉捲、陳醋拌雙耳、酒香醉元蹄、炭烤烏魚子、魚子醬磯煮鮑魚）",
+          "北海鱈場蟹富貴鍋",
+          "黑椒戰斧豬肋排",
+          "炙燒香薰龍虎斑",
+          "瑤柱臘味八寶米糕",
+          "花膠小卷翠玉白",
+          "獨家贈送：琥珀鳳梨起司蛋糕"
+        ],
+        "notes": "年節商品皆為手工製作，數量有限，售完為止。不得與其他優惠併用及累積萬豪旅享家。",
+        "image": "assets/img/chinese.jpg",
+        "imageStatus": "placeholder",
+        "imageAlt": "中式年菜示意圖",
+        "officialImage": "https://www.sheratongrandtaipei.com/files/pages_179007736715did3289_l.jpg",
+        "ctas": [
+          { "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511 轉宴會業務部" },
+          { "type": "link", "label": "官網詳情", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&id=859" }
+        ],
+        "source": "台北喜來登官網年節專區（2026/10/23 讀取）",
+        "verify": "官網宅配時間寫「2027/2/1-2026/2/4」，依前後文應為 2027/02/01–02/04；正式圖片使用授權待確認。"
+      },
+      { "id": "tk-d1", "status": "coming", "category": "set", "venue": "請客樓", "tag": "米其林一星", "name": "極品御璽年菜套組", "serve": "六人份", "desc": "功夫小菜碟、御品佛跳牆、青椒汁時鮮魚、黑蒜無骨牛、干貝麻油雞煨飯與紅豆藜麥鬆糕。", "image": "assets/img/guest.jpg", "imageStatus": "reference", "imageAlt": "請客樓年菜套組往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d2", "status": "coming", "category": "set", "venue": "辰園", "tag": "米其林入選", "name": "祥雲瑞彩年菜套組", "serve": "六人份", "desc": "鴻運燒味拼、松茸菌瑤柱花膠燉土雞、蟲草醬皇蒸龍蝦、干貝蟹肉娃娃菜、極品鮑魚珍珠雞。", "image": "assets/img/chinese.jpg", "imageStatus": "reference", "imageAlt": "辰園年菜套組往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d3", "status": "coming", "category": "set", "venue": "桃山", "tag": "老字號料亭", "name": "御節年菜三段重", "serve": "四至六人份", "desc": "三重木箱盛裝龍蝦、帝王蟹腳、鮑魚與烏魚子等吉祥年節佳餚。", "image": "assets/img/osechi.jpg", "imageStatus": "reference", "imageAlt": "桃山御節年菜往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d4", "status": "coming", "category": "set", "venue": "桃山", "tag": "老字號料亭", "name": "豪華海陸涮涮鍋", "serve": "四人份", "desc": "A5 和牛肋眼與黑毛松阪豚，海鮮湯底搭配龍蝦、鮑魚與北海道干貝。", "image": "assets/img/shabu.jpg", "imageStatus": "reference", "imageAlt": "桃山涮涮鍋往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d5", "status": "coming", "category": "set", "venue": "SUKHOTHAI", "tag": "宮廷泰式料理", "name": "鴻運金喜年菜套組", "serve": "四人份", "desc": "金錢蝦餅、炭烤松阪豬、泰北海陸龍蝦湯、清蒸檸檬龍虎斑。", "image": "assets/img/thai.jpg", "imageStatus": "reference", "imageAlt": "SUKHOTHAI 年菜往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d6", "status": "coming", "category": "set", "venue": "安東廳", "tag": "頂級牛排館", "name": "爐烤美國 Prime 帶骨肋眼牛排套餐", "serve": "二至四人份", "desc": "高溫爐烤封存肉汁，表層焦脆、肉質柔嫩。", "image": "assets/img/steak.jpg", "imageStatus": "reference", "imageAlt": "安東廳牛排套餐往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d7", "status": "coming", "category": "set", "venue": "比薩屋", "tag": "拿坡里職人認證", "name": "奢華帝王蟹分享餐", "serve": "四人份", "desc": "帝王蟹腿比薩、海鮮沙拉、蟹餃番茄海鮮湯與海膽燉飯。", "image": "assets/img/crab.jpg", "imageStatus": "reference", "imageAlt": "比薩屋帝王蟹分享餐往年影像", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d9", "status": "coming", "category": "single", "venue": "請客樓", "tag": "米其林一星", "name": "花膠白鯧米粉湯", "serve": "八人份", "desc": "費工慢熬的溫醇湯頭，花膠、香酥白鯧魚、花菇與芋頭。", "image": "", "imageStatus": "none", "imageAlt": "", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "tk-d10", "status": "coming", "category": "single", "venue": "辰園", "tag": "米其林入選", "name": "廣式鴻運燒味拼", "serve": "六人份", "desc": "明爐烤鴨、煙燻茶鵝、溏心烏魚子、蜜汁叉燒與玫瑰油雞。", "image": "", "imageStatus": "none", "imageAlt": "", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" }
+    ]
+  },
+
+  "dining": {
+    "title": "餐廳內用",
+    "lead": "十二廚自助餐與大廳酒吧的除夕及春節（初一至初五）餐價。選擇日期與餐期，即可查看時段、價格與訂位方式。",
+    "restaurants": [
+      { "id": "kitchen12", "name": "十二廚", "type": "國際自助餐", "booking": { "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-kitchen-12/reserve/landing", "cnyPhoneOnly": true }, "tel": "+886223215511", "telDisplay": "02-2321-5511", "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=15" },
+      { "id": "lounge", "name": "大廳酒吧", "type": "Lounge & Bar", "booking": { "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-lounge/reserve/landing", "cnyPhoneOnly": false }, "tel": "+886223211818", "telDisplay": "02-2321-1818", "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=16" }
+    ],
+    "dates": [
+      { "id": "0205", "md": "02.05", "wd": "五", "lunar": "除夕" },
+      { "id": "0206", "md": "02.06", "wd": "六", "lunar": "初一" },
+      { "id": "0207", "md": "02.07", "wd": "日", "lunar": "初二" },
+      { "id": "0208", "md": "02.08", "wd": "一", "lunar": "初三" },
+      { "id": "0209", "md": "02.09", "wd": "二", "lunar": "初四" },
+      { "id": "0210", "md": "02.10", "wd": "三", "lunar": "初五" }
+    ],
+    "meals": [
+      { "id": "lunch", "label": "午餐" },
+      { "id": "tea", "label": "下午茶" },
+      { "id": "dinner", "label": "晚餐" }
+    ],
+    "defaultDate": "0205",
+    "defaultMeal": "dinner",
+    "offers": [
+      { "id": "k12-eve-lunch", "restaurant": "kitchen12", "title": "除夕自助午餐", "dates": ["0205"], "meal": "lunch", "slots": [{ "time": "11:30–14:00", "adult": 2980, "child": 1490 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-eve-dinner", "restaurant": "kitchen12", "title": "除夕自助晚餐", "dates": ["0205"], "meal": "dinner", "slots": [{ "time": "第一場 17:00–19:00", "adult": 3980, "child": 1990 }, { "time": "第二場 19:45–21:45", "adult": 3980, "child": 1990 }], "deposit": "須預付全額", "booking": "phone", "noDiscount": true },
+      { "id": "lg-eve-lunch", "restaurant": "lounge", "title": "除夕午間單點", "dates": ["0205"], "meal": "lunch", "note": "10:00–15:00 制式單點菜單（11:00 開始供餐，最後點餐 14:30）", "deposit": "訂金每位 NT$500", "extra": "當日樂團暫停演出", "booking": "online" },
+      { "id": "lg-eve-dinner", "restaurant": "lounge", "title": "除夕晚餐", "dates": ["0205"], "meal": "dinner", "slots": [{ "time": "第一場 17:00–19:00", "adult": 3980, "child": 1990 }, { "time": "第二場 19:45–21:45", "adult": 3980, "child": 1990 }], "deposit": "須預付全額", "booking": "phone", "bookingNote": "由十二廚統籌訂位", "bookingTel": "+886223215511", "noDiscount": true },
+      { "id": "k12-cny1-lunch", "restaurant": "kitchen12", "title": "春節自助午餐", "dates": ["0206", "0207", "0208"], "meal": "lunch", "slots": [{ "time": "11:30–14:00", "adult": 2980, "child": 1490 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-cny1-tea", "restaurant": "kitchen12", "title": "春節自助下午茶", "dates": ["0206", "0207", "0208"], "meal": "tea", "slots": [{ "time": "15:00–17:00", "adult": 1580, "child": 790 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-cny1-dinner", "restaurant": "kitchen12", "title": "春節自助晚餐", "dates": ["0206", "0207", "0208"], "meal": "dinner", "slots": [{ "time": "18:00–21:00", "adult": 2980, "child": 1490 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-cny2-lunch", "restaurant": "kitchen12", "title": "春節自助午餐", "dates": ["0209", "0210"], "meal": "lunch", "slots": [{ "time": "11:30–14:00", "adult": 1990, "child": 995 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-cny2-tea", "restaurant": "kitchen12", "title": "春節自助下午茶", "dates": ["0209", "0210"], "meal": "tea", "slots": [{ "time": "15:00–17:00", "adult": 1290, "child": 645 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "k12-cny2-dinner", "restaurant": "kitchen12", "title": "春節自助晚餐", "dates": ["0209", "0210"], "meal": "dinner", "slots": [{ "time": "18:00–21:00", "adult": 1990, "child": 995 }], "deposit": "訂金每位 NT$500", "booking": "phone" },
+      { "id": "lg-cny-lunch", "restaurant": "lounge", "title": "春節單點", "dates": ["0206", "0207", "0208", "0209", "0210"], "meal": "lunch", "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）", "deposit": "4 位（含）以上訂金每位 NT$500", "booking": "online" },
+      { "id": "lg-cny-tea", "restaurant": "lounge", "title": "春節單點", "dates": ["0206", "0207", "0208", "0209", "0210"], "meal": "tea", "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）", "deposit": "4 位（含）以上訂金每位 NT$500", "booking": "online" },
+      { "id": "lg-cny-dinner", "restaurant": "lounge", "title": "春節單點", "dates": ["0206", "0207", "0208", "0209", "0210"], "meal": "dinner", "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）", "deposit": "4 位（含）以上訂金每位 NT$500", "booking": "online" }
+    ],
+    "discounts": {
+      "0205": "除夕晚餐不適用美饌卡、會館會員等優惠；午餐依正常會員優惠。",
+      "0206": "美饌卡會員 1–20 人享 8 折；會館會員依正常優惠。",
+      "0207": "美饌卡會員 1–20 人享 8 折；會館會員依正常優惠。"
+    },
+    "rooms": {
+      "title": "十二廚包廂低消（Salt 8 人／Pepper 10 人）",
+      "columns": ["日期", "餐期", "Salt／8 人", "Pepper／10 人"],
+      "rows": [
+        ["除夕 02.05（五）", "午餐", 26000, 32000],
+        ["除夕 02.05（五）", "晚餐", 35000, 43000],
+        ["初一至初三 02.06–02.08", "午餐／晚餐", 26000, 32000],
+        ["初一至初三 02.06–02.08", "下午茶", 13000, 17000],
+        ["初四至初五 02.09–02.10", "午餐／晚餐", 17000, 21000],
+        ["初四至初五 02.09–02.10", "下午茶", 11000, 14000]
+      ],
+      "verify": "MEMO SFB-26-072 包廂低消表未註明所屬餐廳，此處推定為十二廚包廂，請餐飲部確認。"
+    },
+    "source": "MEMO SFB-26-072（2026/08/18 簽核）；TableCheck 連結取自官網餐廳頁（2026/10/23）",
+    "verify": "MEMO 註明十二廚「僅提供電話訂位」，故春節期間十二廚 CTA 為電話；官網另有十二廚 TableCheck 連結，平日可用。"
+  },
+
+  "banquet": {
+    "status": "soldout",
+    "title": "幸福啟航 除夕圍爐宴",
+    "venue": "宴會廳",
+    "date": "2027.02.05（五）18:00　B2 宴會廳",
+    "statusLabel": "已售完",
+    "text": "感謝熱烈支持，宴會廳除夕圍爐宴席次已全數售完。仍想在除夕到飯店圍爐，歡迎選擇十二廚除夕自助晚餐，或預購宴會廳「吉羊納福」冷凍年菜在家團圓。",
+    "prices": [
+      { "label": "十人桌席", "value": "NT$36,800＋10%" },
+      { "label": "六人桌席", "value": "NT$25,800＋10%", "verify": "MEMO SMC-26-008 為 25,800，宣傳海報為 26,800，請宴會業務部確認。" }
+    ],
+    "menu": ["春滿乾坤福滿門", "日式昆布鮑魚什錦沙律", "老廣花膠山海佛跳牆", "古早味樹子蔥油蒸活龍蝦", "美式煙燻戰斧豬肋排", "法式蒜香奶油帝王蟹", "南洋泰式咖哩龍虎斑", "瑤柱臘味八寶米糕", "寒舍天使乳酪奶蓋雪糕", "團團圓圓馬卡龍", "寶島玉露珍果慶豐年"],
+    "ctas": [
+      { "type": "anchor", "label": "改訂十二廚除夕晚餐", "target": "dining", "preset": { "date": "0205", "meal": "dinner" } },
+      { "type": "anchor", "label": "預購吉羊納福年菜", "target": "takeaway" }
+    ],
+    "source": "MEMO SMC-26-008（2026/10/14 簽核）；售完狀態由專案窗口於 2026/10/23 告知"
+  },
+
+  "events": {
+    "title": "新春館內活動",
+    "lead": "除夕至初五，館內的節慶時刻一覽。活動內容依現場公告為準，標示「示意」者為版面規劃示範，正式內容待公布。",
+    "days": [
+      { "id": "all", "label": "全部" },
+      { "id": "0205", "label": "除夕" },
+      { "id": "0206", "label": "初一" },
+      { "id": "0207", "label": "初二" },
+      { "id": "0208", "label": "初三" },
+      { "id": "0209", "label": "初四" },
+      { "id": "0210", "label": "初五" }
+    ],
+    "items": [
+      { "id": "ev-voyage", "status": "confirmed", "days": ["0205"], "time": "18:00 起", "place": "B2 宴會廳", "title": "幸福啟航除夕晚會", "desc": "吉祥舞獅、經典老歌、魔術秀與互動遊戲，搭配新春好禮抽獎（限圍爐宴賓客，已售完）。", "image": "assets/fake/event-voyage.svg", "imageStatus": "placeholder", "tag": "圍爐宴賓客限定", "ctas": [{ "type": "anchor", "label": "其他除夕選擇", "target": "dining" }] },
+      { "id": "ev-lion", "status": "sample", "days": ["0206"], "time": "11:00", "place": "1F 大廳", "title": "新春舞獅迎賓", "desc": "初一上午舞獅賀歲，為賓客送上新年祝福。", "image": "assets/fake/event-lion.svg", "imageStatus": "placeholder", "tag": "示意", "ctas": [] },
+      { "id": "ev-floral", "status": "sample", "days": ["0205", "0206", "0207", "0208", "0209", "0210"], "time": "全日", "place": "1F 大廳", "title": "羊年新春花藝裝置", "desc": "以金色羊角與祥雲為題的節慶花藝，歡迎合影留念。", "image": "assets/fake/event-floral.svg", "imageStatus": "placeholder", "tag": "示意", "ctas": [] },
+      { "id": "ev-band", "status": "sample", "days": ["0206", "0207", "0208", "0209", "0210"], "time": "19:00–21:00", "place": "大廳酒吧", "title": "新春樂團演出", "desc": "春節期間晚間現場演奏，佐餐小酌。除夕當日樂團暫停演出。", "image": "assets/fake/event-band.svg", "imageStatus": "placeholder", "tag": "示意", "ctas": [{ "type": "booking", "label": "線上訂位", "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-lounge/reserve/landing" }] },
+      { "id": "ev-kids", "status": "sample", "days": ["0207", "0208"], "time": "14:00–16:00", "place": "手拉手樂園", "title": "親子新春手作", "desc": "小朋友動手做羊年吊飾，帶回滿滿年味。", "image": "assets/fake/event-kids.svg", "imageStatus": "placeholder", "tag": "示意", "ctas": [{ "type": "inquiry", "label": "電話洽詢", "tel": "+886223215511", "note": "02-2321-5511" }] },
+      { "id": "ev-app", "status": "sample", "days": ["0205", "0206", "0207", "0208", "0209", "0210"], "time": "活動期間", "place": "寒舍生活 App", "title": "新春消費集點", "desc": "春節期間館內消費累積 App 點數，兌換新年好禮。", "image": "assets/fake/event-app.svg", "imageStatus": "placeholder", "tag": "示意", "ctas": [{ "type": "link", "label": "了解 App", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&id=279" }] }
+    ],
+    "verify": "除「幸福啟航除夕晚會」外，其餘活動皆為版面示意，需由公關／活動窗口提供正式內容。"
+  },
+
+  "gifts": {
+    "title": "通路伴手禮",
+    "lead": "拜年送禮、企業致意，挑一份體面的心意。可線上購買、電話訂購，或至 1F The Deli 外賣店提貨。",
+    "channels": [
+      { "id": "online", "label": "官方線上購物", "url": "https://twanga.mohist.com.tw/LIKEGO/sort.php?GetStore=MHH&b=3031" },
+      { "id": "deli", "label": "1F The Deli 外賣店提貨" },
+      { "id": "phone", "label": "電話訂購 02-2321-5511" }
+    ],
+    "items": [
+      { "id": "gf-xuexu", "status": "onsale", "venue": "The Deli", "name": "金雪絮餅禮盒", "spec": "20 入", "price": 788, "originalPrice": 920, "priceNote": "官網獨享優惠價", "desc": "奶香牛軋餡融入宜蘭金棗、蔓越莓果乾與南瓜子，低糖不黏牙。", "pickup": "提貨 10/12–12/31，11:00–18:00，1F The Deli", "image": "", "imageStatus": "none", "seal": "絮", "channels": ["online", "deli"], "ctas": [{ "type": "buy", "label": "線上購買", "url": "https://twanga.mohist.com.tw/LIKEGO/sort.php?GetStore=MHH&b=3031" }, { "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "官網「線上禮遇．人氣伴手禮推薦」（2026/10/23 讀取）", "verify": "官網提貨日至 12/31，春節前是否延長請確認。" },
+      { "id": "gf-cakes", "status": "coming", "venue": "辰園", "name": "富貴高陞雙糕禮盒", "spec": "臘味蘿蔔糕、芋頭糕各 900g", "desc": "純手工蒸炊的臘味蘿蔔糕與芋頭糕。", "image": "assets/img/cakes.jpg", "imageStatus": "reference", "imageAlt": "辰園雙糕禮盒往年影像", "channels": ["phone"], "ctas": [{ "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "gf-xo", "status": "coming", "venue": "辰園", "name": "步步高陞雙糕＋XO 醬禮盒", "spec": "雙糕各 900g＋XO 醬 260g", "desc": "雙糕搭配辰園經典手工 XO 醬。", "image": "", "imageStatus": "none", "seal": "陞", "channels": ["phone"], "ctas": [{ "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "gf-sausage", "status": "coming", "venue": "辰園", "name": "鴛鴦雙常肝臘腸＋XO 醬禮盒", "spec": "肝腸、臘腸各 300g＋XO 醬 260g", "desc": "古法風乾的肝腸與臘腸。", "image": "", "imageStatus": "none", "seal": "常", "channels": ["phone"], "ctas": [{ "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" },
+      { "id": "gf-karasumi", "status": "coming", "venue": "桃山", "name": "溏心烏魚子禮盒", "spec": "單片裝", "desc": "手工日曬與鹽漬，口感軟糯彈牙。", "image": "", "imageStatus": "none", "seal": "烏", "channels": ["phone"], "ctas": [{ "type": "phone", "label": "電話訂購", "tel": "+886223215511", "note": "02-2321-5511" }], "source": "2026 品項，2027 待公布" }
+    ],
+    "corporate": { "title": "企業大量採購", "text": "春酒、尾牙與客戶致意，由專人提供報價、客製卡片與交期安排。", "ctas": [{ "type": "inquiry", "label": "企業採購洽詢", "tel": "+886223215511", "note": "02-2321-5511" }] }
+  },
+
+  "faq": {
+    "title": "訂位與購買須知",
+    "items": [
+      { "q": "何時可以訂位？要怎麼訂？", "a": "十二廚與大廳酒吧已於 2026 年 9 月 14 日開放除夕及春節預訂。十二廚除夕及春節僅受理電話訂位（02-2321-5511）；大廳酒吧春節期間可線上訂位，除夕晚餐由十二廚統籌訂位。" },
+      { "q": "訂金怎麼收？", "a": "除夕晚餐兩場次須預付全額；其他餐期以每位 NT$500 綁定訂金（大廳酒吧春節期間 4 位以上適用）。" },
+      { "q": "除夕晚餐取消，可以退費嗎？", "a": "依取消日返還餐費（天數不含用餐日）：01/21（含）以前 100%；01/22–01/29 返還 50%；01/30–02/01 返還 20%；02/02–02/04 不予返還。春節其他日期依飯店標準取消政策辦理。", "verify": "MEMO 原文 20% 區間寫為「01/30~01/01」，依前後文應為 01/30~02/01。" },
+      { "q": "可以使用會員優惠或餐券嗎？", "a": "除夕晚餐不適用美饌卡與會館會員優惠。初一、初二美饌卡會員享 1–20 人 8 折；其他日期依正常會員優惠。使用餐券須補足與票券之差額。" },
+      { "q": "外帶年菜怎麼訂、怎麼收？", "a": "「吉羊納福」冷凍年菜組請電話 02-2321-5511 轉宴會業務部預訂，2026/12/31 前預付享早鳥價，宅配時間 2027/02/01–02/04。各餐廳年菜品項公布後將於本頁更新訂購方式。" },
+      { "q": "價格是否含服務費？", "a": "餐廳內用價格均另加 10% 服務費；外帶年菜與伴手禮依各商品標示價格。" }
+    ]
+  },
+
+  "footer": {
+    "company": "寒舍餐旅管理顧問股份有限公司",
+    "hotel": "台北喜來登大飯店 Sheraton Grand Taipei Hotel",
+    "copyright": "COPYRIGHT © 2026 寒舍餐旅管理顧問股份有限公司 ALL RIGHTS RESERVED.",
+    "trademark": "Sheraton、Sheraton Grand 與相關標誌為 Marriott International, Inc. 或其關係企業之商標，依授權使用。",
+    "links": [
+      { "label": "台北喜來登官網", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw" },
+      { "label": "年節專區", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=0&type=104" },
+      { "label": "寒舍生活 App", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&id=279" },
+      { "label": "隱私權政策", "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=5&id=60" }
+    ],
+    "social": [
+      { "id": "facebook", "label": "Facebook", "url": "https://www.facebook.com/sheratongrandtaipeihotel/" },
+      { "id": "instagram", "label": "Instagram", "url": "https://www.instagram.com/sheratongrandtaipei/?hl=zh-tw" },
+      { "id": "line", "label": "LINE", "url": "https://line.me/R/ti/p/%40239juuly" },
+      { "id": "youtube", "label": "YouTube", "url": "https://www.youtube.com/user/sheratontpeofficial/featured" }
+    ],
+    "legal": "本頁價格以新台幣計；餐廳內用另加 10% 服務費。活動內容以飯店現場公告為準，飯店保留修改權利。標示「示意」之影像與內容僅供版面參考。",
+    "drinkWarning": "禁止酒駕　未滿十八歲禁止飲酒"
+  }
+}

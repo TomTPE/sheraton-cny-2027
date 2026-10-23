@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>後台上稿｜2027 新春宣傳網站</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+
+  <!-- 登入 -->
+  <section id="login" class="login" aria-labelledby="login-title">
+    <form id="login-form" class="login-card" novalidate>
+      <h1 id="login-title">後台上稿平台</h1>
+      <p class="muted">台北喜來登 2027 新春宣傳網站</p>
+      <div class="field">
+        <label for="login-token">後台金鑰</label>
+        <input id="login-token" name="token" type="password" autocomplete="off" spellcheck="false" required aria-describedby="login-help login-error">
+        <p id="login-help" class="help">金鑰由系統管理員提供（伺服器首次啟動時產生）。金鑰只保存在這個瀏覽器分頁，關閉分頁即清除。</p>
+      </div>
+      <p id="login-error" class="error-text" role="alert"></p>
+      <button type="submit" class="btn btn-primary btn-block">登入</button>
+    </form>
+  </section>
+
+  <!-- 主畫面 -->
+  <div id="app" hidden>
+    <header class="topbar">
+      <div class="topbar-title">
+        <strong>後台上稿</strong>
+        <span id="role-badge" class="badge"></span>
+      </div>
+      <p id="save-state" class="save-state" role="status" aria-live="polite"></p>
+      <div class="toolbar" role="toolbar" aria-label="草稿操作">
+        <button type="button" id="btn-save" class="btn btn-primary">儲存草稿</button>
+        <button type="button" id="btn-preview" class="btn">預覽</button>
+        <button type="button" id="btn-publish" class="btn btn-accent" hidden>發布</button>
+        <button type="button" id="btn-logout" class="btn btn-ghost">登出</button>
+      </div>
+    </header>
+
+    <div class="mobile-nav">
+      <label for="module-select">切換模組</label>
+      <select id="module-select"></select>
+    </div>
+
+    <div id="layout" class="layout">
+      <nav id="sidebar" class="sidebar" aria-label="內容模組">
+        <ul id="module-list"></ul>
+      </nav>
+
+      <main id="main" class="main" tabindex="-1">
+        <div id="error-panel" class="error-panel" hidden></div>
+        <div id="module"></div>
+      </main>
+
+      <aside id="preview" class="preview" hidden aria-label="草稿預覽">
+        <div class="preview-bar">
+          <span>草稿預覽（已儲存版本）</span>
+          <span class="preview-actions">
+            <button type="button" id="btn-preview-reload" class="btn btn-small">重新整理</button>
+            <button type="button" id="btn-preview-close" class="btn btn-small">關閉</button>
+          </span>
+        </div>
+        <iframe id="preview-frame" title="草稿預覽"></iframe>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="modal" class="modal" aria-labelledby="modal-title">
+    <form method="dialog" class="modal-inner">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body" class="modal-body"></div>
+      <div id="modal-actions" class="modal-actions"></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
