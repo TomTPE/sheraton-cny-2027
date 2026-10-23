@@ -27,6 +27,8 @@ jobs:
         run: python3 -c "import json; json.load(open('data/content.json', encoding='utf-8'))"
       - name: 建置（測試環境，強制 noindex、移除校稿欄位）
         run: python3 scripts/build.py --env test --out dist
+      - name: 檢查建置產物（不含後台、無內部欄位、引用檔案皆存在）
+        run: python3 scripts/check_dist.py dist
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

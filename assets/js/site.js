@@ -26,9 +26,8 @@
     return '<p class="verify">待確認：' + esc(text) + '</p>';
   }
   function icon(id) { return '<svg class="ico" aria-hidden="true"><use href="#i-' + id + '"/></svg>'; }
-  function mark() { return '<svg class="head__mark" aria-hidden="true"><use href="#emblem"/></svg>'; }
   function head(id, title, lead, extra) {
-    return '<header class="head' + (extra ? ' head--split' : '') + '" data-reveal><div>' + mark() +
+    return '<header class="head' + (extra ? ' head--split' : '') + '" data-reveal><div>' +
       '<h2 id="' + id + '-title">' + esc(title) + '</h2>' + (lead ? '<p>' + esc(lead) + '</p>' : '') +
       '<div class="head__rule" aria-hidden="true"><i></i></div></div>' + (extra || '') + '</header>';
   }
@@ -94,6 +93,44 @@
         '<a class="btn btn--gold" href="#' + esc(s.target) + '" tabindex="-1">' + esc('前往' + s.kicker) + icon('arrow') + '</a></div>';
     }).join('');
     $('[data-dots]').innerHTML = h.scenes.map(function () { return '<li></li>'; }).join('');
+  }
+
+  /* ---------- 四大需求入口 ---------- */
+  // 價格提示由各區塊資料自動計算，確保入口與內容一致
+  function pathHint(it) {
+    if (it.hint) return it.hint;
+    if (it.status === 'soldout') return '已售完';
+    var t = it.ctas && it.ctas[0] && it.ctas[0].target, min;
+    if (t === 'takeaway') {
+      var f = D.takeaway.items.filter(function (i) { return visible(i) && i.status === 'onsale' && i.price; });
+      if (f.length) { min = Math.min.apply(null, f.map(function (i) { return i.price; })); return '預購中　NT$' + nt(min) + ' 起'; }
+    }
+    if (t === 'dining') {
+      var a = [];
+      D.dining.offers.filter(visible).forEach(function (o) { (o.slots || []).forEach(function (s) { a.push(s.adult); }); });
+      if (a.length) return '自助餐 NT$' + nt(Math.min.apply(null, a)) + ' 起＋10%';
+    }
+    if (t === 'gifts') {
+      var g = D.gifts.items.filter(function (i) { return visible(i) && i.status === 'onsale' && i.price; });
+      if (g.length) return '線上購買　NT$' + nt(Math.min.apply(null, g.map(function (i) { return i.price; }))) + ' 起';
+    }
+    return '';
+  }
+  function renderPaths() {
+    var P = D.paths, sec = $('[data-section=paths]');
+    if (!P || !P.items) { sec.hidden = true; return; }
+    sec.innerHTML = '<div class="wrap"><header class="paths__head" data-reveal><h2 id="paths-title">' + esc(P.title) + '</h2>' + (P.lead ? '<p>' + esc(P.lead) + '</p>' : '') + '</header><div class="paths">' +
+      P.items.filter(visible).map(function (it, i) {
+        var c = (it.ctas && it.ctas[0]) || {}, sold = it.status === 'soldout';
+        var pre = c.preset ? ' data-preset="' + esc(JSON.stringify(c.preset)) + '"' : '';
+        var hint = pathHint(it);
+        return '<a class="path' + (sold ? ' path--sold' : '') + '" href="#' + esc(c.target) + '"' + pre + ' data-reveal style="--d:' + (i * .07) + 's">' +
+          '<span class="path__icon">' + icon(it.icon || 'arrow') + '</span>' +
+          '<span class="path__need">' + esc(it.need) + '</span><strong class="path__title">' + esc(it.title) + '</strong>' +
+          '<span class="path__desc">' + esc(it.desc) + '</span>' +
+          (hint ? '<span class="path__hint">' + esc(hint) + '</span>' : '') +
+          '<span class="path__go">' + esc(c.label || '前往') + icon('arrow') + '</span></a>';
+      }).join('') + '</div></div>';
   }
 
   /* ---------- 外帶年菜 ---------- */
@@ -321,7 +358,7 @@
         });
       });
     }, { rootMargin: '-40% 0px -55% 0px' });
-    ['hero'].concat(D.nav.map(function (n) { return n.id; }), ['site-footer']).forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
+    ['hero', 'paths'].concat(D.nav.map(function (n) { return n.id; }), ['site-footer']).forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
   }
 
   /* ---------- HERO 捲動敘事（Apple 式） ---------- */
@@ -336,7 +373,7 @@
       var span = Math.max(1, r.height - innerHeight);
       var p = clamp(-r.top / span, 0, 1);
       var s = hero.style;
-      s.setProperty('--p', p.toFixed(4));
+      s.setProperty('--p', p.toFixed(4)); heroP = p;
       if (!REDUCED) {
         var t = ss(0, .42, p), mb = mobile();
         var ct = lerp(mb ? 52 : 50, 0, t), cx = lerp(mb ? 9 : 31, 0, t), cb = lerp(mb ? 11 : 7, 0, t), cr = lerp(mb ? 170 : 320, 0, t);
@@ -370,13 +407,14 @@
 
   /* ---------- 金箔微粒 ---------- */
   var dust = { active: true };
+  var heroP = 0;
   function goldDust() {
     var cv = $('[data-dust]'); if (!cv || REDUCED) return;
     var ctx = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1), W, H, P = [];
     function size() {
       W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = W < 768 ? 34 : 70; P = [];
-      for (var i = 0; i < n; i++) P.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + .4, v: Math.random() * .25 + .08, a: Math.random() * Math.PI * 2, s: Math.random() * .02 + .006, d: (Math.random() - .5) * .2 });
+      var n = W < 768 ? 14 : 28; P = [];
+      for (var i = 0; i < n; i++) P.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + .3, v: Math.random() * .16 + .05, a: Math.random() * Math.PI * 2, s: Math.random() * .02 + .006, d: (Math.random() - .5) * .2 });
     }
     size(); addEventListener('resize', size);
     function loop() {
@@ -386,7 +424,7 @@
       for (var i = 0; i < P.length; i++) {
         var q = P[i]; q.y -= q.v; q.x += q.d + Math.sin(q.a) * .15; q.a += q.s;
         if (q.y < -10) { q.y = H + 10; q.x = Math.random() * W; }
-        var al = (Math.sin(q.a * 2) + 1) / 2 * .7 + .15;
+        var al = ((Math.sin(q.a * 2) + 1) / 2 * .45 + .08) * (1 - heroP * .8);
         var g = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, q.r * 4);
         g.addColorStop(0, 'rgba(250,228,186,' + al + ')'); g.addColorStop(1, 'rgba(201,162,107,0)');
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, q.r * 4, 0, 6.283); ctx.fill();
@@ -429,7 +467,7 @@
     function scan(arr, where) { (arr || []).forEach(function (i) { if (i.imageStatus === 'placeholder' || i.imageStatus === 'reference') extra.push(where + '「' + (i.name || i.title) + '」使用示意圖（' + i.imageStatus + '）'); }); }
     scan(D.takeaway.items, '外帶年菜'); scan(D.gifts.items, '伴手禮'); scan(D.events.items, '館內活動');
     var all = VERIFY.concat(extra);
-    var p = document.createElement('aside'); p.className = 'review-panel';
+    var p = document.createElement('aside'); p.className = 'review-panel is-min';
     p.innerHTML = '<h2>校稿模式：待確認 ' + all.length + ' 項</h2><ol>' + all.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol><button type="button">收合／展開</button>';
     document.body.appendChild(p);
     $('button', p).addEventListener('click', function () { p.classList.toggle('is-min'); });
@@ -445,7 +483,7 @@
   }
   load().then(function (data) {
     D = data;
-    applyBrand(); renderNav(); renderHero(); renderTakeaway(); renderDining(); renderBanquet(); renderEvents(); renderGifts(); renderFaq(); renderFooter();
+    applyBrand(); renderNav(); renderHero(); renderPaths(); renderTakeaway(); renderDining(); renderBanquet(); renderEvents(); renderGifts(); renderFaq(); renderFooter();
     observeReveal(document); navSpy(); heroMotion(); goldDust(); rails(); globalEvents(); reviewPanel();
     if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }).catch(function (err) {

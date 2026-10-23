@@ -13,6 +13,7 @@
     { id: 'brand', label: '品牌 CIS', keys: ['brand'] },
     { id: 'contacts', label: '聯絡資訊', keys: ['contacts'] },
     { id: 'hero', label: '首頁 Banner', keys: ['hero'] },
+    { id: 'paths', label: '四大需求入口', keys: ['paths'] },
     { id: 'takeaway', label: '外帶年菜', keys: ['takeaway'] },
     { id: 'dining', label: '餐廳內用', keys: ['dining'] },
     { id: 'banquet', label: '宴會廳', keys: ['banquet'] },
