@@ -40,6 +40,18 @@ def referenced_uploads(node, out):
         out.add(node)
 
 
+def bust(html, base):
+    """在 JS／CSS 網址加上內容雜湊，避免部署後瀏覽器沿用快取的舊檔（GitHub Pages 預設快取 10 分鐘）。"""
+    import hashlib
+
+    def sub(m):
+        f = base / m.group(2)
+        if not f.is_file():
+            return m.group(0)
+        return '%s="%s?v=%s"' % (m.group(1), m.group(2), hashlib.sha256(f.read_bytes()).hexdigest()[:10])
+    return re.sub(r'(src|href)="((?:assets|\.)?[^"?#]*\.(?:js|css))"', sub, html)
+
+
 def esc(v):
     return H.escape(str(v), quote=True)
 
@@ -157,8 +169,9 @@ def copy_admin(out, args):
            'img-src \'self\' https: data: blob:; connect-src \'self\' https://api.github.com %s; frame-src \'self\'; '
            'base-uri \'none\'; form-action \'self\'; object-src \'none\'">') % (cfg.get("api", ""),)
     idx = out / "admin" / "index.html"
-    idx.write_text(idx.read_text(encoding="utf-8").replace('<meta charset="utf-8">', '<meta charset="utf-8">\n  ' + csp, 1), encoding="utf-8")
     (out / "admin" / "cms-config.js").write_text("window.CMS_CONFIG = %s;\n" % json.dumps(cfg), encoding="utf-8")
+    page = idx.read_text(encoding="utf-8").replace('<meta charset="utf-8">', '<meta charset="utf-8">\n  ' + csp, 1)
+    idx.write_text(bust(page, out / "admin"), encoding="utf-8")
 
 
 def main():
@@ -211,6 +224,7 @@ def main():
 
     # SEO：把標題、描述、canonical、Open Graph、結構化資料寫進靜態 HTML（社群預覽與爬蟲不必執行 JS）
     html = (out / "index.html").read_text(encoding="utf-8")
+    html = bust(html, out)
     html = re.sub(r"<!-- SEO:start.*?<!-- SEO:end -->", lambda m: seo_head(data), html, flags=re.S)
     (out / "index.html").write_text(html, encoding="utf-8")
     write_crawl_files(out, data)
