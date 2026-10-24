@@ -8,6 +8,7 @@ workers_dev = true
 GITHUB_REPO = "TomTPE/sheraton-cny-2027"
 GITHUB_BRANCH = "main"
 ALLOWED_ORIGINS = "https://tomtpe.github.io"
+SITE_URL = "https://tomtpe.github.io/sheraton-cny-2027/"
 # GITHUB_TOKEN 為機密，請用 `wrangler secret put GITHUB_TOKEN` 設定，不要寫在這個檔案
 
 [[d1_databases]]

@@ -66,9 +66,10 @@
     var root = document.documentElement.style;
     Object.keys(tk).forEach(function (k) { root.setProperty('--' + k, tk[k]); });
     if (D.meta) {
-      document.title = D.meta.title || document.title;
-      var m = $('meta[name=robots]'); if (m) m.content = D.meta.noindex ? 'noindex, nofollow' : 'index, follow';
-      var desc = $('meta[name=description]'); if (desc && D.meta.description) desc.content = D.meta.description;
+      var seo = D.seo || {};
+      document.title = seo.title || D.meta.title || document.title;
+      var m = $('meta[name=robots]'); if (m && D.meta.noindex) m.content = 'noindex, nofollow';
+      var desc = $('meta[name=description]'); if (desc && (seo.description || D.meta.description)) desc.content = seo.description || D.meta.description;
     }
     var logo = $('[data-logo]'); if (logo && D.brand.logo) logo.src = D.brand.logo.onDark;
     var main = D.contacts.main;
@@ -101,7 +102,7 @@
     $('[data-hero-lead]').textContent = h.lead;
     var list = (h.slides || []).filter(visible);
     slideshow.list = list;
-    $('[data-track]').innerHTML = list.map(function (sl, i) {
+    $('[data-hero-track]').innerHTML = list.map(function (sl, i) {
       return '<img class="slide" src="' + esc(sl.image) + '" alt="' + esc(sl.imageAlt || '') + '" width="1400" height="934"' + (i ? ' loading="lazy"' : '') + ' decoding="async" data-slide="' + i + '">';
     }).join('');
     $('[data-segs]').innerHTML = list.map(function (sl, i) {
@@ -132,6 +133,7 @@
       segs.forEach(function (b, k) { b.classList.toggle('is-done', k < S.idx); b.classList.remove('is-on'); if (k === S.idx) { void b.offsetWidth; b.classList.add('is-on'); } b.setAttribute('aria-current', k === S.idx ? 'true' : 'false'); });
       var sl = S.list[S.idx];
       venue.innerHTML = '<b>' + esc(sl.venue) + '</b><span>' + esc(sl.label) + '</span>';
+      var tag = $('[data-hero-tag]'); if (tag) tag.hidden = !(sl.imageStatus === 'reference' || sl.imageStatus === 'placeholder');
       var nx = imgs[(S.idx + 1) % n]; if (nx) nx.loading = 'eager';
       schedule();
     }
@@ -194,7 +196,7 @@
           '<span class="door__desc">' + esc(it.desc) + '</span>' +
           (hint ? '<span class="door__hint">' + esc(hint) + '</span>' : '') +
           '<span class="door__go">' + esc(c.label || '前往') + icon('arrow') + '</span></span></a>';
-      }).join('') + '</div><p class="paths__note">影像為往年料理示意</p></div>';
+      }).join('') + '</div>' + (P.items.filter(visible).some(function (x) { return x.imageStatus === 'reference' || x.imageStatus === 'placeholder'; }) ? '<p class="paths__note">部分影像為示意</p>' : '') + '</div>';
     var wrap = $('[data-paths]', sec);
     function open(el) { $$('.door', wrap).forEach(function (d) { d.classList.toggle('is-open', d === el); }); }
     wrap.addEventListener('pointerenter', function (e) { var d = e.target.closest && e.target.closest('.door'); if (d && e.pointerType === 'mouse') open(d); }, true);
@@ -291,7 +293,8 @@
     var maxDinner = Math.max.apply(null, kDates.map(function (x) { return dinnerPrice(x.id); }).concat([1]));
     var AX0 = 11 * 60, AX1 = 22 * 60;
     var axis = []; for (var hh = 11; hh <= 21; hh += 2) axis.push('<span style="--s:' + ((hh * 60 - AX0) / (AX1 - AX0)).toFixed(4) + '">' + hh + ':00</span>');
-    var kState = { date: d.defaultDate || (kDates[0] && kDates[0].id), meal: '' };
+    var hasDate = function (id) { return kDates.some(function (x) { return x.id === id; }); };
+    var kState = { date: hasDate(d.defaultDate) ? d.defaultDate : (kDates[0] && kDates[0].id), meal: '' };
     // 大廳酒吧：只留一行補充（除夕晚餐固定價，其餘單點）
     var lgEve = d.offers.filter(function (o) { return visible(o) && o.restaurant === 'lounge' && o.slots; })[0];
     var loungeLine = lgEve ? '除夕晚餐兩場次 成人 NT$' + nt(lgEve.slots[0].adult) + '／兒童 NT$' + nt(lgEve.slots[0].child) + '，須預付全額，' + (lgEve.bookingNote || '') + '；其他時段為制式單點菜單。' : '除夕及春節期間為制式單點菜單。';
@@ -308,7 +311,7 @@
       '<details class="fold" data-reveal><summary>' + esc(rooms.title) + '</summary><div class="fold__body"><table class="tbl"><thead><tr>' +
       rooms.columns.map(function (c) { return '<th scope="col">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       rooms.rows.map(function (r) { return '<tr><th scope="row">' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td><td>' + nt(r[2]) + '</td><td>' + nt(r[3]) + '</td></tr>'; }).join('') +
-      '</tbody></table><p class="card__meta" style="margin-top:10px">金額單位新台幣，含服務費依 MEMO 規定。包廂需求請電話洽詢。</p>' + verify(rooms.verify, '包廂低消') + '</div></details></div>';
+      '</tbody></table><p class="card__meta" style="margin-top:10px">' + esc(rooms.note || '金額單位為新台幣，包廂低消與服務費以訂位時說明為準；包廂需求請來電餐廳訂位專線 02-2321-1818。') + '</p>' + verify(rooms.verify, '包廂低消') + '</div></details></div>';
 
     function drawCal() {
       $('[data-cal]', sec).innerHTML = kDates.map(function (x) {
@@ -347,11 +350,12 @@
         '<div class="timeline"><div class="timeline__axis" aria-hidden="true">' + axis.join('') + '</div><div class="timeline__track">' + blocks.join('') + '</div></div>';
       var tl = $('.timeline', sec); tl.classList.remove('is-swap'); void tl.offsetWidth; tl.classList.add('is-swap');
     }
-    function pick(id) { kState.date = id; drawCal(); drawDay(); }
+    function pick(id) { kState.date = hasDate(id) ? id : (kDates[0] && kDates[0].id); drawCal(); drawDay(); }
     var cal = $('[data-cal]', sec);
     cal.addEventListener('click', function (e) { var b = e.target.closest('[data-id]'); if (!b) return; kState.meal = ''; pick(b.dataset.id); $('[data-id="' + kState.date + '"]', cal).focus(); });
     cal.addEventListener('keydown', function (e) {
       var dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!dir) return; e.preventDefault();
+      kState.meal = '';
       var bs = $$('[data-id]', cal), i2 = bs.map(function (b) { return b.dataset.id; }).indexOf(kState.date);
       pick(bs[(i2 + dir + bs.length) % bs.length].dataset.id); $('[data-id="' + kState.date + '"]', cal).focus();
     });
@@ -414,7 +418,7 @@
   /* ---------- 須知 ---------- */
   function renderFaq() {
     var f = D.faq;
-    $('[data-section=faq]').innerHTML = '<div class="wrap">' + head('faq', f.title) + '<div class="faq">' + f.items.map(function (x, i) {
+    $('[data-section=faq]').innerHTML = '<div class="wrap">' + head('faq', f.title) + '<div class="faq">' + f.items.filter(visible).map(function (x, i) {
       return '<details' + (i === 0 ? ' open' : '') + ' data-reveal><summary>' + esc(x.q) + '</summary><p>' + esc(x.a) + '</p>' + verify(x.verify, x.q) + '</details>';
     }).join('') + '</div></div>';
   }
@@ -492,7 +496,7 @@
 
   /* ---------- HERO 捲動敘事（Apple 式） ---------- */
   function heroMotion() {
-    var hero = $('[data-hero]'), frame = $('[data-frame]'), heroImg = $('[data-track]'), scenes = $$('[data-scene]'), dots = $$('[data-dots] li');
+    var hero = $('[data-hero]'), frame = $('[data-frame]'), heroImg = $('[data-hero-track]'), scenes = $$('[data-scene]'), dots = $$('[data-dots] li');
     var dock = $('.dock');
     var mobile = function () { return innerWidth < 768; };
     var ticking = false, cur = -2;
@@ -591,6 +595,9 @@
     if (!el) return;
     if (hash && location.hash !== hash) history.pushState(null, '', hash);
     el.scrollIntoView({ behavior: REDUCED ? 'instant' : 'smooth', block: 'start' });
+    // 讓鍵盤與螢幕報讀器的焦點跟著移動（跳至主要內容、導覽、快捷列）
+    if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.setAttribute('tabindex', '-1');
+    try { el.focus({ preventScroll: true }); } catch (e) { /* 舊瀏覽器 */ }
     setTimeout(function () {
       var m = parseFloat(getComputedStyle(el).scrollMarginTop) || parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       // 'auto' 會沿用 CSS 的 smooth，這裡要用 'instant' 才能確保定位
@@ -652,11 +659,12 @@
     var ads = ok(t.googleAds, /^AW-\d{6,12}$/) ? t.googleAds : '', px = ok(t.metaPixel, /^\d{10,20}$/) ? t.metaPixel : '';
     var consent = null; try { consent = localStorage.getItem('cny2027Consent'); } catch (e) { consent = null; }
     function load(src) { var sc = document.createElement('script'); sc.async = true; sc.src = src; document.head.appendChild(sc); }
+    var adOk = !!consent || !t.cookieNotice;
     window.dataLayer = window.dataLayer || [];
     if (ga4 || gtm || ads) {
       window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
       // Consent Mode v2：分析預設允許；廣告相關待使用者按「我知道了」後才允許
-      window.gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: consent ? 'granted' : 'denied', ad_user_data: consent ? 'granted' : 'denied', ad_personalization: consent ? 'granted' : 'denied' });
+      window.gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: adOk ? 'granted' : 'denied', ad_user_data: adOk ? 'granted' : 'denied', ad_personalization: adOk ? 'granted' : 'denied' });
     }
     if (gtm) { window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' }); load('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtm)); }
     if (ga4 || ads) {
@@ -672,7 +680,7 @@
       load('https://connect.facebook.net/en_US/fbevents.js');
       window.fbq('init', px); window.fbq('track', 'PageView');
     }
-    if (consent) pixel();
+    if (consent || !t.cookieNotice) pixel();
     if (t.cookieNotice && !consent && (ga4 || gtm || ads || px)) {
       var bar = document.createElement('div');
       bar.className = 'consent'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Cookie 告知');
@@ -724,6 +732,6 @@
     observeReveal(document); navSpy(); startSlideshow(); heroMotion(); rails(); globalEvents(); reviewPanel(); tracking();
     if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }).catch(function (err) {
-    $('main').innerHTML = '<div class="load-error"><p>內容載入失敗（' + esc(err.message) + '）。請以本機伺服器開啟本頁，或來電 02-2321-5511 洽詢。</p></div>';
+    $('main').innerHTML = '<div class="load-error"><p>內容載入失敗（' + esc(err.message) + '）。請稍後重新整理，或來電：餐廳訂位 02-2321-1818／年菜・伴手禮 02-2321-5511。</p></div>';
   });
 })();

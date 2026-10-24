@@ -557,3 +557,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .consent a { color: var(--champagne); }
 .consent .btn { flex-shrink: 0; }
 @media (min-width: 1024px) { .consent { left: auto; right: 24px; bottom: 24px; max-width: 520px; } }
+
+/* 跳轉目標取得焦點時不顯示外框（只為移動閱讀位置） */
+[tabindex="-1"]:focus { outline: none; }

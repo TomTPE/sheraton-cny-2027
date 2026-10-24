@@ -143,16 +143,17 @@ async function login(env, req) {
   if (!USER_RE.test(username) || !password) return generic();
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   if (!u) { await pbkdf2(password, '00'.repeat(16), PBKDF2_ITER); await audit(env, username, 'login_fail', null, '無此帳號', req); return generic(); }
-  if (u.disabled) { await audit(env, username, 'login_fail', null, '帳號已停用', req); return fail(env, req, 403, '帳號已停用，請洽管理員'); }
   if (u.locked_until && u.locked_until > Date.now()) return fail(env, req, 423, '密碼錯誤次數過多，帳號暫時鎖定，請 15 分鐘後再試或洽管理員');
   const h = await pbkdf2(password, u.salt, u.iterations);
   if (!safeEqual(h, u.pw_hash)) {
-    const fails = (u.failed || 0) + 1;
-    const lock = fails >= MAX_FAILS ? Date.now() + LOCK_MS : null;
-    await env.DB.prepare('UPDATE users SET failed = ?, locked_until = ? WHERE id = ?').bind(lock ? 0 : fails, lock, u.id).run();
-    await audit(env, username, 'login_fail', null, lock ? '連續錯誤，鎖定 15 分鐘' : '密碼錯誤 ' + fails + ' 次', req);
+    // 原子遞增，避免並發猜測時各請求讀到同一個舊值而繞過鎖定
+    const row = await env.DB.prepare('UPDATE users SET failed = failed + 1 WHERE id = ? RETURNING failed').bind(u.id).first();
+    const fails = row ? row.failed : MAX_FAILS;
+    if (fails >= MAX_FAILS) await env.DB.prepare('UPDATE users SET failed = 0, locked_until = ? WHERE id = ?').bind(Date.now() + LOCK_MS, u.id).run();
+    await audit(env, username, 'login_fail', null, fails >= MAX_FAILS ? '連續錯誤，鎖定 15 分鐘' : '密碼錯誤 ' + fails + ' 次', req);
     return generic();
   }
+  if (u.disabled) { await audit(env, username, 'login_fail', null, '帳號已停用', req); return fail(env, req, 403, '帳號已停用，請洽管理員'); }
   const token = randomHex(32);
   const expires = Date.now() + SESSION_TTL_MS;
   await env.DB.batch([
@@ -224,6 +225,7 @@ async function updateUser(env, req, me, id) {
   }
   if (b.unlock) { sets.push('failed = 0', 'locked_until = NULL'); notes.push('解除鎖定'); }
   if (b.password !== undefined) {
+    if (u.id === me.id) return fail(env, req, 422, '請用右上角「變更密碼」修改自己的密碼');
     const p = passwordProblem(b.password, u.username);
     if (p) return fail(env, req, 422, p);
     const salt = randomHex(16);
@@ -257,11 +259,55 @@ async function deleteUser(env, req, me, id) {
   return json(env, req, 200, { ok: true });
 }
 
+// ---------- 內容驗證（與 server.py validate_document 的關鍵規則相同；完整規則由 GitHub Actions 再驗一次）----------
+const REQUIRED = ['meta', 'brand', 'contacts', 'nav', 'hero', 'takeaway', 'dining', 'banquet', 'events', 'gifts', 'faq', 'footer'];
+const STATUS = ['onsale', 'coming', 'soldout', 'confirmed', 'sample', 'hidden'];
+const IMG_STATUS = ['official', 'reference', 'placeholder', 'none'];
+const TRACK = { ga4: /^G-[A-Z0-9]{4,12}$/, gtm: /^GTM-[A-Z0-9]{4,10}$/, googleAds: /^AW-\d{6,12}$/, metaPixel: /^\d{10,20}$/ };
+function validateDoc(doc) {
+  const errs = [];
+  const err = (p, m) => { if (errs.length < 50) errs.push({ path: p, message: m }); };
+  if (!doc || typeof doc !== 'object' || Array.isArray(doc)) return [{ path: '（根）', message: '文件必須是 JSON 物件' }];
+  for (const k of REQUIRED) {
+    if (!(k in doc)) err(k, '缺少必要欄位「' + k + '」');
+    else if (k === 'nav' ? !Array.isArray(doc[k]) : (typeof doc[k] !== 'object' || Array.isArray(doc[k]))) err(k, '「' + k + '」格式錯誤');
+  }
+  const navIds = Array.isArray(doc.nav) ? doc.nav.map((n) => n && n.id) : [];
+  const ctaTypes = doc.ctaTypes && typeof doc.ctaTypes === 'object' ? Object.keys(doc.ctaTypes) : [];
+  const walk = (n, p) => {
+    if (Array.isArray(n)) { n.forEach((v, i) => walk(v, p + '[' + i + ']')); return; }
+    if (!n || typeof n !== 'object') return;
+    for (const [k, v] of Object.entries(n)) {
+      const q = p ? p + '.' + k : k;
+      if (k === 'status' && typeof v === 'string' && !STATUS.includes(v)) err(q, '狀態「' + v + '」無效');
+      if (k === 'imageStatus' && !IMG_STATUS.includes(v)) err(q, '圖片授權狀態無效');
+      if ((k === 'tel' || k === 'directTel' || k === 'bookingTel') && v !== '' && !/^\+886\d{8,9}$/.test(String(v))) err(q, '電話必須是 +886 國際格式');
+      if (k === 'ctas' && Array.isArray(v)) v.forEach((c, i) => {
+        const cp = q + '[' + i + ']';
+        if (!c || !ctaTypes.includes(c.type)) return err(cp + '.type', 'CTA 類型無效');
+        if ((c.type === 'phone' || c.type === 'inquiry') && !/^\+886\d{8,9}$/.test(String(c.tel || ''))) err(cp + '.tel', '電話必須是 +886 國際格式');
+        if (['booking', 'buy', 'link'].includes(c.type) && !/^https:\/\/\S+$/.test(String(c.url || ''))) err(cp + '.url', '網址必須以 https:// 開頭');
+        if (c.type === 'anchor' && !navIds.includes(c.target)) err(cp + '.target', '頁內錨點必須是導覽列的 id');
+      });
+      walk(v, q);
+    }
+  };
+  walk(doc, '');
+  if (doc.tracking && typeof doc.tracking === 'object') for (const [k, re] of Object.entries(TRACK)) {
+    const v = doc.tracking[k];
+    if (v && !re.test(String(v))) err('tracking.' + k, '追蹤碼格式錯誤');
+  }
+  return errs;
+}
+
 // ---------- 內容 ----------
+const noToken = (env, req) => (env.GITHUB_TOKEN ? null : fail(env, req, 503, 'Worker 尚未設定 GitHub 金鑰（GITHUB_TOKEN 為空），請管理員重新設定後再儲存'));
 async function getContent(env, req, stage) {
   if (stage === 'draft') {
     const f = await readFile(env, DRAFT);
-    if (f.text) return json(env, req, 200, JSON.parse(f.text), { ETag: '"' + f.sha + '"' });
+    if (f.text) {
+      try { return json(env, req, 200, JSON.parse(f.text), { ETag: '"' + f.sha + '"' }); } catch (e) { return fail(env, req, 422, '草稿檔案格式錯誤，請由管理員從「版本紀錄」還原'); }
+    }
     if (!f.missing) return fail(env, req, 502, '無法讀取草稿：' + ghHint(f.error));
   }
   const c = await readFile(env, CONTENT);
@@ -271,6 +317,7 @@ async function getContent(env, req, stage) {
 const etagOf = (req) => String(req.headers.get('If-Match') || '').replace(/^W\//, '').replace(/"/g, '');
 
 async function putDraft(env, req, me) {
+  const nt = noToken(env, req); if (nt) return nt;
   const ifm = etagOf(req);
   if (!ifm) return fail(env, req, 428, '缺少 If-Match：請先載入草稿再儲存');
   const raw = await req.text();
@@ -278,6 +325,8 @@ async function putDraft(env, req, me) {
   let doc;
   try { doc = JSON.parse(raw); } catch (e) { return fail(env, req, 400, 'JSON 格式錯誤'); }
   if (!doc || typeof doc !== 'object' || !doc.meta) return fail(env, req, 422, '文件缺少 meta');
+  const verrs = validateDoc(doc);
+  if (verrs.length) return fail(env, req, 422, '驗證失敗，共 ' + verrs.length + ' 項需修正', { errors: verrs });
   const cur = await readFile(env, DRAFT);
   if (cur.error) return fail(env, req, 502, '無法讀取目前草稿：' + ghHint(cur.error));
   const curTag = cur.missing ? 'new' : cur.sha;
@@ -297,12 +346,16 @@ async function putDraft(env, req, me) {
 }
 
 async function publish(env, req, me) {
+  const nt = noToken(env, req); if (nt) return nt;
   const cur = await readFile(env, DRAFT);
-  if (cur.missing) return fail(env, req, 409, '尚無草稿，請先儲存草稿再發布');
+  if (cur.missing) return fail(env, req, 422, '尚無草稿，請先修改內容並儲存草稿再發布');
   if (cur.error) return fail(env, req, 502, '無法讀取草稿（GitHub ' + cur.error + '）');
   const ifm = etagOf(req);
   if (ifm && ifm !== cur.sha) return fail(env, req, 409, '草稿已被其他人更新，請重新載入並確認後再發布', { etag: cur.sha });
-  const doc = JSON.parse(cur.text);
+  let doc;
+  try { doc = JSON.parse(cur.text); } catch (e) { return fail(env, req, 422, '草稿檔案格式錯誤，請重新儲存草稿'); }
+  const verrs = validateDoc(doc);
+  if (verrs.length) return fail(env, req, 422, '草稿驗證失敗，無法發布（共 ' + verrs.length + ' 項）', { errors: verrs });
   const pub = await readFile(env, CONTENT);
   let pubRev = 0;
   try { pubRev = parseInt(JSON.parse(pub.text).meta.revision, 10) || 0; } catch (e) { pubRev = 0; }
@@ -311,6 +364,7 @@ async function publish(env, req, me) {
   doc.meta.updatedAt = nowIso();
   doc.meta.updatedBy = me.username;
   const w = await writeFile(env, CONTENT, b64encodeBytes(enc.encode(dump(doc))), 'CMS 發布 rev ' + rev + '：' + me.username, pub.sha);
+  if (w.status === 409 || w.status === 422) return fail(env, req, 409, '線上版本剛被其他人發布，請重新載入確認後再發布');
   if (!w.ok) return fail(env, req, 502, '發布失敗：' + ghHint(w.status, w.data));
   await audit(env, me.username, 'publish', rev, '', req);
   return json(env, req, 200, { ok: true, revision: rev, updatedAt: doc.meta.updatedAt, note: '已送出，GitHub Actions 驗證與建置後約 1–2 分鐘上線' });
@@ -319,21 +373,34 @@ async function publish(env, req, me) {
 async function revisions(env, req) {
   const r = await gh(env, 'GET', '/commits?sha=' + encodeURIComponent(branch(env)) + '&path=' + encodeURIComponent(CONTENT) + '&per_page=30');
   if (!r.ok) return fail(env, req, 502, '無法讀取版本紀錄');
+  let liveRev = null;
+  if (env.SITE_URL) {
+    try {
+      const s = await fetch(env.SITE_URL.replace(/\/?$/, '/') + 'data/content.json?t=' + Date.now(), { cf: { cacheTtl: 0 } });
+      if (s.ok) liveRev = (await s.json()).meta.revision;
+    } catch (e) { liveRev = null; }
+  }
   const out = r.data.map((c, i) => {
     const m = /rev (\d+)：?(\S*)/.exec(c.commit.message);
-    return { revision: m ? Number(m[1]) : c.sha.slice(0, 7), ref: c.sha, updatedAt: c.commit.author.date, updatedBy: (m && m[2]) || (c.author && c.author.login) || c.commit.author.name, live: i === 0 };
+    const rev = m ? Number(m[1]) : c.sha.slice(0, 7);
+    return { revision: rev, ref: c.sha, updatedAt: c.commit.author.date, updatedBy: (m && m[2]) || (c.author && c.author.login) || c.commit.author.name, live: liveRev == null ? i === 0 : rev === liveRev };
   });
   return json(env, req, 200, { revisions: out });
 }
 
 async function rollback(env, req, me) {
+  const nt = noToken(env, req); if (nt) return nt;
   const b = await req.json().catch(() => null);
   const list = await gh(env, 'GET', '/commits?sha=' + encodeURIComponent(branch(env)) + '&path=' + encodeURIComponent(CONTENT) + '&per_page=30');
-  const hit = list.ok ? list.data.find((c) => String((/rev (\d+)/.exec(c.commit.message) || [])[1] || c.sha.slice(0, 7)) === String(b && b.revision)) : null;
+  const ref = b && typeof b.ref === 'string' && /^[0-9a-f]{40}$/.test(b.ref) ? b.ref : null;
+  const hit = !list.ok ? null : ref ? list.data.find((c) => c.sha === ref)
+    : list.data.find((c) => String((/rev (\d+)/.exec(c.commit.message) || [])[1] || c.sha.slice(0, 7)) === String(b && b.revision));
   if (!hit) return fail(env, req, 404, '找不到此版本');
   const old = await readFile(env, CONTENT, hit.sha);
   if (!old.text) return fail(env, req, 502, '無法讀取該版本內容');
-  const doc = JSON.parse(old.text);
+  let doc;
+  try { doc = JSON.parse(old.text); } catch (e) { return fail(env, req, 422, '該版本內容格式錯誤，無法還原'); }
+  if (!doc.meta) return fail(env, req, 422, '該版本缺少 meta，無法還原');
   doc.meta.updatedAt = nowIso();
   doc.meta.updatedBy = me.username;
   const cur = await readFile(env, DRAFT);
@@ -350,6 +417,7 @@ function sniff(b) {
   return null;
 }
 async function upload(env, req, me) {
+  const nt = noToken(env, req); if (nt) return nt;
   const buf = new Uint8Array(await req.arrayBuffer());
   if (!buf.length) return fail(env, req, 400, '沒有收到檔案內容');
   if (buf.length > MAX_UPLOAD) return fail(env, req, 413, '檔案超過 3 MB 上限');
@@ -358,7 +426,9 @@ async function upload(env, req, me) {
   const rel = 'assets/uploads/' + (await sha256hex(buf)).slice(0, 16) + '.' + ext;
   const exists = await gh(env, 'GET', '/contents/' + rel + '?ref=' + encodeURIComponent(branch(env)));
   if (!exists.ok) {
-    const name = decodeURIComponent(req.headers.get('X-Filename') || '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 80);
+    let name = req.headers.get('X-Filename') || '';
+    try { name = decodeURIComponent(name); } catch (e) { /* 保留原字串 */ }
+    name = name.replace(/[\x00-\x1f\x7f]/g, '').slice(0, 80);
     const w = await writeFile(env, rel, b64encodeBytes(buf), 'CMS 上傳 ' + rel + ' ← ' + name + '：' + me.username);
     if (!w.ok) return fail(env, req, 502, '上傳失敗：' + ghHint(w.status, w.data));
   }
@@ -368,7 +438,7 @@ async function upload(env, req, me) {
 
 async function auditLog(env, req) {
   const r = await env.DB.prepare('SELECT ts, username, action, revision, detail FROM audit ORDER BY id DESC LIMIT 200').all();
-  return json(env, req, 200, { entries: r.results.map((e) => ({ ts: e.ts, role: e.username, action: e.action, revision: e.revision, detail: e.detail })) });
+  return json(env, req, 200, { entries: r.results.map((e) => ({ ts: e.ts, username: e.username, action: e.action, revision: e.revision, detail: e.detail })) });
 }
 
 // ---------- 路由 ----------
@@ -382,32 +452,31 @@ export default {
     if (origin && !allowed.includes(origin)) return fail(env, req, 403, '來源網域未被允許');
     try {
       if (p === '/api/health') return json(env, req, 200, { ok: true });
-      if (p === '/api/login' && req.method === 'POST') return login(env, req);
+      if (p === '/api/login' && req.method === 'POST') return await login(env, req);
 
       const me = await currentUser(env, req);
       if (!me) return fail(env, req, 401, '請先登入');
-      if (!env.GITHUB_TOKEN && req.method !== 'GET') return fail(env, req, 503, 'Worker 尚未設定 GitHub 金鑰（GITHUB_TOKEN 為空），請管理員重新設定後再儲存');
       if (p === '/api/logout' && req.method === 'POST') { await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(me.tokenHash).run(); return json(env, req, 200, { ok: true }); }
       if (p === '/api/whoami') return json(env, req, 200, { role: me.role, username: me.username, displayName: me.display_name, mustChange: !!me.must_change });
-      if (p === '/api/password' && req.method === 'POST') return changeOwnPassword(env, req, me);
+      if (p === '/api/password' && req.method === 'POST') return await changeOwnPassword(env, req, me);
       if (me.must_change) return fail(env, req, 403, '請先變更密碼', { mustChange: true });
 
-      if (p === '/api/content' && req.method === 'GET') return getContent(env, req, url.searchParams.get('stage') === 'draft' ? 'draft' : 'published');
-      if (p === '/api/draft' && req.method === 'PUT') return putDraft(env, req, me);
-      if (p === '/api/upload' && req.method === 'POST') return upload(env, req, me);
-      if (p === '/api/revisions' && req.method === 'GET') return revisions(env, req);
+      if (p === '/api/content' && req.method === 'GET') return await getContent(env, req, url.searchParams.get('stage') === 'draft' ? 'draft' : 'published');
+      if (p === '/api/draft' && req.method === 'PUT') return await putDraft(env, req, me);
+      if (p === '/api/upload' && req.method === 'POST') return await upload(env, req, me);
+      if (p === '/api/revisions' && req.method === 'GET') return await revisions(env, req);
 
       if (rank(me.role) < 2) return fail(env, req, 403, '權限不足（需發布者以上）');
-      if (p === '/api/publish' && req.method === 'POST') return publish(env, req, me);
-      if (p === '/api/rollback' && req.method === 'POST') return rollback(env, req, me);
-      if (p === '/api/audit' && req.method === 'GET') return auditLog(env, req);
+      if (p === '/api/publish' && req.method === 'POST') return await publish(env, req, me);
+      if (p === '/api/rollback' && req.method === 'POST') return await rollback(env, req, me);
+      if (p === '/api/audit' && req.method === 'GET') return await auditLog(env, req);
 
       if (rank(me.role) < 3) return fail(env, req, 403, '權限不足（需管理員）');
-      if (p === '/api/users' && req.method === 'GET') return listUsers(env, req);
-      if (p === '/api/users' && req.method === 'POST') return createUser(env, req, me);
+      if (p === '/api/users' && req.method === 'GET') return await listUsers(env, req);
+      if (p === '/api/users' && req.method === 'POST') return await createUser(env, req, me);
       const m = /^\/api\/users\/(\d+)$/.exec(p);
-      if (m && req.method === 'PATCH') return updateUser(env, req, me, Number(m[1]));
-      if (m && req.method === 'DELETE') return deleteUser(env, req, me, Number(m[1]));
+      if (m && req.method === 'PATCH') return await updateUser(env, req, me, Number(m[1]));
+      if (m && req.method === 'DELETE') return await deleteUser(env, req, me, Number(m[1]));
       return fail(env, req, 404, '不支援的操作');
     } catch (e) {
       return fail(env, req, 500, '伺服器錯誤：' + (e && e.message ? e.message : e));

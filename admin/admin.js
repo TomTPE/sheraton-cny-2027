@@ -226,7 +226,12 @@
     opts = opts || {};
     if (window.CMS_BACKEND) {
       const r = await window.CMS_BACKEND.api(method, path, opts, S.token || '');
-      if (r.status === 401 && S.role) { S.role = null; toast('登入已失效，請重新輸入金鑰', 'error'); showLogin('登入已失效，請重新輸入金鑰'); }
+      if (r.status === 401 && S.role) {
+        if (isDirty()) S.pending = S.draft;
+        S.role = null;
+        const m = '登入已逾時，請重新登入' + (S.pending ? '；未儲存的變更已暫存，登入後可以套用' : '');
+        toast(m, 'error'); showLogin(m);
+      }
       return r;
     }
     const headers = Object.assign({ 'X-Admin-Token': S.token || '' }, opts.headers || {});
@@ -683,7 +688,12 @@
   // --- 圖片 ---
   function imageSrc(v) {
     if (!v || !imagePathOk(v)) return '';
-    return HTTPS_RE.test(v) ? v : '/' + v;
+    if (HTTPS_RE.test(v)) return v;
+    const C = window.CMS_CONFIG;
+    if (C && C.owner && C.repo && v.startsWith('assets/uploads/')) {
+      return 'https://raw.githubusercontent.com/' + encodeURIComponent(C.owner) + '/' + encodeURIComponent(C.repo) + '/' + encodeURIComponent(C.branch || 'main') + '/' + v;
+    }
+    return (C ? '../' : '/') + v;
   }
 
   function imageField(path, value, parent) {
@@ -1016,7 +1026,7 @@
         el('td', null, v.live ? el('span', { class: 'badge badge-live', text: '目前線上' }) : '')
       ];
       if (canPublish()) {
-        cells.push(el('td', null, el('button', { type: 'button', class: 'btn btn-small', onclick: () => rollback(v.revision) }, '還原至草稿')));
+        cells.push(el('td', null, el('button', { type: 'button', class: 'btn btn-small', onclick: () => rollback(v.revision, v.ref) }, '還原至草稿')));
       }
       tbody.appendChild(el('tr', null, cells));
     }
@@ -1026,12 +1036,12 @@
     ])));
   }
 
-  async function rollback(rev) {
+  async function rollback(rev, ref) {
     const body = ['將 rev ' + rev + ' 的內容還原到草稿。目前草稿中尚未發布的內容會被取代；線上網站不會改變，需再次發布才會上線。'];
     if (isDirty()) body.push('注意：你有尚未儲存的變更，還原後將會遺失。');
     const c = await modal({ title: '還原 rev ' + rev + ' 至草稿？', body, actions: [{ id: 'ok', label: '還原至草稿', primary: true, danger: true }, { id: 'cancel', label: '取消' }] });
     if (c !== 'ok') return;
-    const r = await api('POST', '/api/rollback', { body: { revision: rev } });
+    const r = await api('POST', '/api/rollback', { body: Object.assign({ revision: rev }, ref ? { ref } : {}) });
     if (!r.ok) { toast('還原失敗：' + errMsg(r), 'error'); return; }
     await loadDraft();
     S.errors = validateDoc(S.draft);
@@ -1149,7 +1159,7 @@
 
     async function patch(u, body, done) {
       const r = await api('PATCH', '/api/users/' + u.id, { body });
-      if (!r.ok) { toast(errMsg(r), 'error'); return; }
+      if (!r.ok) { toast(errMsg(r), 'error'); loadList(); return; }
       toast(done);
       loadList();
     }
@@ -1164,7 +1174,9 @@
         rs.setAttribute('aria-label', u.username + ' 的角色');
         rs.addEventListener('change', () => patch(u, { role: rs.value }, '已將 ' + u.username + ' 改為' + ROLE_LABELS[rs.value]));
         const state = u.disabled ? '已停用' : u.locked ? '鎖定中' : u.mustChange ? '待變更密碼' : '啟用';
-        const acts = el('div', { class: 'row-actions' }, [
+        const self = u.username === S.username;
+        if (self) { rs.disabled = true; rs.title = '不能變更自己的角色'; }
+        const acts = el('div', { class: 'row-actions' }, self ? [el('span', { class: 'muted', text: '（目前登入的帳號；請用右上角「變更密碼」）' })] : [
           el('button', { type: 'button', class: 'btn btn-small', onclick: async () => {
             const pw = await askPassword('重設 ' + u.username + ' 的密碼', '設定暫時密碼後，對方下次登入必須自行變更；該帳號目前的登入會被登出。');
             if (pw) patch(u, { password: pw }, '已重設 ' + u.username + ' 的密碼');
@@ -1209,7 +1221,7 @@
     for (const e of entries) {
       tbody.appendChild(el('tr', null, [
         el('td', { text: e.ts || '' }),
-        el('td', { text: ROLE_LABELS[e.role] || e.role || '' }),
+        el('td', { text: e.username || ROLE_LABELS[e.role] || e.role || '' }),
         el('td', { text: AUDIT_LABELS[e.action] || e.action || e.raw || '' }),
         el('td', { text: e.revision == null ? '' : 'rev ' + e.revision }),
         el('td', { text: e.detail || '' })
@@ -1217,7 +1229,7 @@
     }
     box.appendChild(el('div', { class: 'table-wrap' }, el('table', { class: 'data' }, [
       el('caption', { class: 'muted', text: '最近 ' + entries.length + ' 筆（新到舊）' }),
-      el('thead', null, el('tr', null, ['時間', '角色', '動作', '版本', '說明'].map(h => el('th', { scope: 'col', text: h })))), tbody
+      el('thead', null, el('tr', null, ['時間', '使用者／角色', '動作', '版本', '說明'].map(h => el('th', { scope: 'col', text: h })))), tbody
     ])));
   }
 
@@ -1243,7 +1255,7 @@
     });
     if (c === 'download') { downloadJSON(S.draft, 'my-draft-' + Date.now() + '.json'); return handleConflict(data); }
     if (c === 'reload') {
-      await loadDraft();
+      try { await loadDraft(); } catch (e) { toast('重新載入失敗：' + e.message, 'error'); return; }
       S.errors = validateDoc(S.draft);
       renderErrorPanel(); renderModule(); updateSaveState();
       toast('已載入最新草稿');
@@ -1264,11 +1276,14 @@
     busy = true;
     $('#btn-save').disabled = true;
     try {
-      const r = await api('PUT', '/api/draft', { body: S.draft, headers: { 'If-Match': S.etag || '' } });
+      // 以送出當下的快照為準：等待回應期間繼續輸入的內容仍視為「未儲存」
+      const sent = JSON.parse(JSON.stringify(S.draft));
+      const r = await api('PUT', '/api/draft', { body: sent, headers: { 'If-Match': S.etag || '' } });
       if (r.status === 200 && r.data) {
         S.etag = r.data.etag;
+        sent.meta = Object.assign(sent.meta || {}, r.data.meta);
         S.draft.meta = Object.assign(S.draft.meta || {}, r.data.meta);
-        S.savedJSON = JSON.stringify(S.draft);
+        S.savedJSON = JSON.stringify(sent);
         updateSaveState();
         if (S.module === 'meta') renderModule();
         reloadPreview();
@@ -1328,6 +1343,7 @@
 
   async function publish() {
     if (!canPublish()) return;
+    if (S.etag === 'new' && !isDirty()) { toast('目前還沒有草稿；請先修改內容並按「儲存草稿」，再發布', 'error'); return; }
     if (isDirty()) {
       const c = await modal({ title: '有未儲存的變更', body: '發布的是伺服器上「已儲存」的草稿。要先儲存目前的變更再發布嗎？', actions: [{ id: 'save', label: '儲存並繼續', primary: true }, { id: 'cancel', label: '取消' }] });
       if (c !== 'save') return;
@@ -1398,12 +1414,19 @@
       return;
     }
     S.role = r.data.role;
+    S.username = r.data.username || '';
     sessionStorage.setItem('cmsToken', token);
     try {
       await Promise.all([loadDraft(), loadPublished()]);
     } catch (e) {
       showLogin(e.message);
       return;
+    }
+    if (S.pending) {
+      const pend = S.pending; S.pending = null;
+      const c = await modal({ title: '套用登入前未儲存的變更？', body: '登入逾時前，你有尚未儲存的修改。套用後請確認內容，再按「儲存草稿」。若期間有人更新過草稿，套用會覆蓋對方的版本。', actions: [{ id: 'apply', label: '套用我的變更', primary: true }, { id: 'download', label: '下載備份後捨棄' }, { id: 'drop', label: '捨棄' }] });
+      if (c === 'apply') S.draft = pend;
+      else if (c === 'download') downloadJSON(pend, 'my-draft-' + Date.now() + '.json');
     }
     showApp();
   }

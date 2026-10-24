@@ -47,3 +47,18 @@ s,d,h=call('DELETE','/api/users/%d'%me,tok=A); ok(s==422,'不能刪除自己')
 s,d,h=call('DELETE','/api/users/%d'%uid,tok=A); ok(s==200,'刪除帳號')
 s,d,h=call('GET','/api/audit',tok=A); acts=[e['action'] for e in d['entries']]; ok(s==200 and {'login','login_fail','user_create','user_update','user_delete','password_change'}<=set(acts),'稽核紀錄完整：%d 筆'%len(acts))
 s,d,h=call('POST','/api/logout',tok=A); s,d,h=call('GET','/api/whoami',tok=A); ok(s==401,'登出後權杖失效')
+# --- 2026-10-24 審查後新增 ---
+s,d,h=call('POST','/api/login',cred); A=d['token']
+s,d,h=call('GET','/api/users',tok=A); me=[u for u in d['users'] if u['username']==cred['username']][0]['id']
+s,d,h=call('PATCH','/api/users/%d'%me,{'password':'Another-Pass-2027!'},A); ok(s==422,'不能在帳號管理重設自己的密碼')
+s,d,h=call('GET','/api/audit',tok=A); ok(s==200 and d['entries'] and 'username' in d['entries'][0] and 'role' not in d['entries'][0],'操作紀錄回傳 username 欄位')
+s,d,h=call('POST','/api/users',{'username':'lock.test','role':'editor','password':'Lock-Test-2027!a'},A)
+import concurrent.futures as cf
+with cf.ThreadPoolExecutor(8) as ex: list(ex.map(lambda i: call('POST','/api/login',{'username':'lock.test','password':'bad-%d'%i}), range(8)))
+s,d,h=call('POST','/api/login',{'username':'lock.test','password':'Lock-Test-2027!a'}); ok(s==423,'並發猜密碼也會鎖定（%d）'%s)
+s,d,h=call('POST','/api/users',{'username':'dis.test','role':'editor','password':'Dis-Test-2027!ab'},A)
+s,d,h=call('GET','/api/users',tok=A); did=[u for u in d['users'] if u['username']=='dis.test'][0]['id']
+call('PATCH','/api/users/%d'%did,{'disabled':True},A)
+s,d,h=call('POST','/api/login',{'username':'dis.test','password':'wrong-password-x'}); ok(s==401,'停用帳號在密碼錯誤時不透露停用狀態')
+s,d,h=call('POST','/api/login',{'username':'dis.test','password':'Dis-Test-2027!ab'}); ok(s==403,'停用帳號在密碼正確時才告知停用')
+s,d,h=call('PUT','/api/draft',{'meta':{}},A); ok(s in (503,422),'無金鑰或驗證失敗時寫入被擋（%d）'%s)

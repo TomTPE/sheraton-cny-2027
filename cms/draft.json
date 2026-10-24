@@ -1285,7 +1285,7 @@
         "deposit": "須預付全額",
         "booking": "phone",
         "bookingNote": "由十二廚統籌訂位",
-        "bookingTel": "+886223215511",
+        "bookingTel": "+886223211818",
         "noDiscount": true,
         "status": "hidden"
       },
@@ -1929,8 +1929,7 @@
           "url": "https://twanga.mohist.com.tw/LIKEGO/detail.php?GetStore=MHH&ProductId=1019348"
         }
       ]
-    },
-    "heroImage": "assets/img/official/gifts.jpg"
+    }
   },
   "faq": {
     "title": "訂位與購買須知",

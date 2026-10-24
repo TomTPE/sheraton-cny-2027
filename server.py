@@ -283,6 +283,22 @@ def validate_document(doc: Any) -> List[Dict[str, str]]:
                 if bk.get("cnyPhoneOnly") is True and b != "phone":
                     err(["dining", "offers", i, "booking"],
                         "「%s」春節期間僅受理電話訂位，booking 必須為 phone" % (r.get("name") or r["id"]))
+    dining = doc.get("dining") if isinstance(doc.get("dining"), dict) else {}
+    date_ids = {x.get("id") for x in dining.get("dates", []) if isinstance(x, dict)}
+    if date_ids:
+        if dining.get("defaultDate") and dining["defaultDate"] not in date_ids:
+            err(["dining", "defaultDate"], "預設日期必須是 dining.dates 之一（可用：%s）" % "、".join(sorted(date_ids)))
+
+        def presets(node, path):
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    if k == "preset" and isinstance(v, dict) and v.get("date") and v["date"] not in date_ids:
+                        err(path + [k, "date"], "預設日期 %s 不在 dining.dates 中" % v["date"])
+                    presets(v, path + [k])
+            elif isinstance(node, list):
+                for n, v in enumerate(node):
+                    presets(v, path + [n])
+        presets(doc, [])
     tr = doc.get("tracking")
     if tr is not None:
         if not isinstance(tr, dict):

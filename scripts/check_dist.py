@@ -89,9 +89,12 @@ color_files = list((DIST / "assets").rglob("*.css")) + list((DIST / "assets").rg
 off = {}
 for f in color_files:
     txt = re.sub(r"/\*.*?\*/", "", f.read_text(encoding="utf-8"), flags=re.S)
-    for h in re.findall(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b", txt):
-        if expand(h) not in palette:
+    for h in re.findall(r"#(?:[0-9A-Fa-f]{8}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{3})\b", txt):
+        base6 = h[:7] if len(h) in (7, 9) else expand(h[:4])
+        if base6.upper() not in palette:
             off.setdefault(str(f.relative_to(DIST)), set()).add(h)
+    for bad in re.findall(r"hsla?\(|rgba?\(\s*\d+\s+\d+", txt):
+        off.setdefault(str(f.relative_to(DIST)), set()).add("請改用 #RRGGBB 或 rgba(r, g, b, a)：" + bad)
     for r, g, b in re.findall(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", txt):
         if (int(r), int(g), int(b)) not in rgb_ok:
             off.setdefault(str(f.relative_to(DIST)), set()).add("rgb(%s,%s,%s)" % (r, g, b))
@@ -101,8 +104,15 @@ notes.append("色票檢查：%d 個檔案，核准色盤 %d 色" % (len(color_fi
 
 # 5. SEO：robots、sitemap、canonical 與結構化資料
 html_all = (DIST / "index.html").read_text(encoding="utf-8")
-if not (DIST / "robots.txt").is_file():
+robots = (DIST / "robots.txt").read_text(encoding="utf-8") if (DIST / "robots.txt").is_file() else None
+if robots is None:
     err("缺少 robots.txt")
+elif data["meta"].get("noindex") and "Disallow: /\n" not in robots + "\n":
+    err("noindex 為 true，但 robots.txt 沒有 Disallow: /")
+elif not data["meta"].get("noindex") and re.search(r"^Disallow: /\s*$", robots, flags=re.M):
+    err("正式環境 robots.txt 仍禁止全站索引")
+if 'property="og:title"' not in html_all:
+    err("index.html 缺少 Open Graph（SEO:start／SEO:end 標記可能遺失）")
 if data["meta"].get("noindex") and "noindex" not in html_all:
     err("noindex 為 true，但 index.html 沒有 noindex")
 for ld in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html_all, flags=re.S):

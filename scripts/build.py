@@ -98,7 +98,7 @@ def structured(d, base):
              "image": absurl(base, d.get("seo", {}).get("ogImage", "")),
              "containsPlace": [{"@type": "Restaurant", "name": r["name"] + (" " + r["nameEn"] if r.get("nameEn") else ""), "servesCuisine": r.get("type"),
                                 "telephone": r.get("tel"), "url": r.get("page"), "image": absurl(base, r.get("image", "")),
-                                "acceptsReservations": r.get("booking", {}).get("url", "True"), "address": addr} for r in rest]}
+                                "acceptsReservations": False if r.get("id") == "deli" else r.get("booking", {}).get("url", "True"), "address": addr} for r in rest]}
     page = {"@context": "https://schema.org", "@type": "WebPage", "name": d.get("seo", {}).get("title") or d["meta"]["title"],
             "description": d.get("seo", {}).get("description") or d["meta"]["description"], "url": base, "inLanguage": "zh-Hant-TW",
             "about": {"@id": hotel_id}}
@@ -107,7 +107,7 @@ def structured(d, base):
         if t.get("status") == "onsale" and t.get("price"):
             items.append({"@type": "Product", "name": t["name"], "description": t.get("desc"), "image": absurl(base, t.get("image", "")),
                           "brand": {"@type": "Brand", "name": "台北喜來登大飯店"},
-                          "offers": {"@type": "Offer", "price": t["price"], "priceCurrency": "TWD", "availability": "https://schema.org/InStock", "url": base + "#takeaway"}})
+                          "offers": {"@type": "Offer", "price": t["price"], "priceCurrency": "TWD", "availability": "https://schema.org/PreOrder", "url": base + "#takeaway"}})
     for g in d["gifts"]["items"]:
         if g.get("status") == "onsale" and g.get("price"):
             buy = next((x.get("url") for x in g.get("ctas", []) if x.get("type") == "buy"), base + "#gifts")
@@ -150,8 +150,8 @@ def copy_admin(out, args):
     cfg = {"backend": "github", "owner": owner, "repo": name, "branch": args.branch}
     api = args.cms_api or os.environ.get("CMS_API", "")
     if api:
-        if not re.match(r"^(https://[a-z0-9.-]+|http://(127\.0\.0\.1|localhost):\d+)(/[A-Za-z0-9._/-]*)?$", api):
-            sys.exit("中止：CMS_API 必須是 https:// 網址（本機測試可用 http://127.0.0.1:埠號）")
+        if not re.match(r"^(https://[a-z0-9.-]+|http://(127\.0\.0\.1|localhost):\d+)/?$", api):
+            sys.exit("中止：CMS_API 必須是 https:// 網域（不含路徑；本機測試可用 http://127.0.0.1:埠號）")
         cfg = {"backend": "worker", "api": api.rstrip("/"), "owner": owner, "repo": name, "branch": args.branch}
     csp = ('<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\'; style-src \'self\'; '
            'img-src \'self\' https: data: blob:; connect-src \'self\' https://api.github.com %s; frame-src \'self\'; '
@@ -175,8 +175,13 @@ def main():
     if args.env == "prod" and data["meta"].get("noindex", True):
         sys.exit("中止：正式環境建置，但 content.json 的 meta.noindex 仍為 true。請於 CMS 確認後改為 false。")
 
-    out = Path(args.out)
+    out = Path(args.out).resolve()
+    # 防呆：不可清除專案本身、其上層目錄或家目錄
+    if out == ROOT or out in ROOT.parents or out == Path.home() or str(out) == out.anchor:
+        sys.exit("中止：--out 不可指向專案、其上層或家目錄：%s" % out)
     if out.exists():
+        if any(out.iterdir()) and not (out / ".nojekyll").exists() and not (out / "index.html").exists():
+            sys.exit("中止：%s 不是先前的建置輸出（缺少 .nojekyll／index.html），為避免誤刪已停止" % out)
         shutil.rmtree(out)
     out.mkdir(parents=True)
 
