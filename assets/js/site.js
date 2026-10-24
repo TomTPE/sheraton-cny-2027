@@ -287,12 +287,12 @@
     var loungeLine = lgEve ? '除夕晚餐兩場次 成人 NT$' + nt(lgEve.slots[0].adult) + '／兒童 NT$' + nt(lgEve.slots[0].child) + '，須預付全額，' + (lgEve.bookingNote || '') + '；其他時段為制式單點菜單。' : '除夕及春節期間為制式單點菜單。';
 
     sec.innerHTML = '<div class="wrap">' + head('dining', d.title, d.lead) + menusHtml(d.menus) +
-      '<div class="sub-head sub-head--row" data-reveal><div><h3>' + esc(d.finderTitle || '十二廚 除夕・春節餐價') + '</h3><p>' + esc(k12.name + '　' + k12.type) + '｜價格為新台幣，另加 10% 服務費</p></div></div>' +
+      '<div class="sub-head sub-head--row" data-reveal><div><h3>' + esc(d.finderTitle || '十二廚 除夕・春節餐價') + '</h3><p>' + esc(k12.type + (kDates.length ? '｜' + kDates[0].lunar + '至' + kDates[kDates.length - 1].lunar : '') + '｜價格另加 10% 服務費') + '</p></div></div>' +
       '<div class="daybook" id="finder" data-reveal>' +
       '<div class="cal" role="radiogroup" aria-label="選擇日期" data-cal></div>' +
       '<div class="dayview" aria-live="polite" data-dayview></div>' +
-      '<div class="daybook__foot"><p>價格為新台幣，另加 10% 服務費。除夕及春節期間僅受理電話訂位。</p>' +
-      ctas([{ type: 'phone', label: '電話訂位　十二廚', tel: k12.tel, note: k12.telDisplay }, { type: 'link', label: '餐廳介紹', url: k12.page }]) + '</div>' + verify(d.verify, '餐廳內用') + '</div>' +
+      '<div class="daybook__foot"><p>除夕及春節期間僅受理電話訂位。</p>' +
+      ctas([{ type: 'phone', label: '電話訂位　十二廚', tel: k12.tel }, { type: 'link', label: '餐廳介紹', url: k12.page }]) + '</div>' + verify(d.verify, '餐廳內用') + '</div>' +
       (d.showLounge && lounge ? '<div class="lounge-line" data-reveal><div><b>' + esc(lounge.name) + '</b><p>' + esc(loungeLine) + '</p></div>' +
       ctas([{ type: 'booking', label: '線上訂位', url: lounge.booking.url }, { type: 'phone', label: '電話', tel: lounge.tel }]) + '</div>' : '') +
       '<details class="fold" data-reveal><summary>' + esc(rooms.title) + '</summary><div class="fold__body"><table class="tbl"><thead><tr>' +
@@ -304,33 +304,36 @@
       $('[data-cal]', sec).innerHTML = kDates.map(function (x) {
         var on = x.id === kState.date, dp = dinnerPrice(x.id);
         return '<button type="button" class="cal__day" role="radio" aria-checked="' + on + '" tabindex="' + (on ? 0 : -1) + '" data-id="' + esc(x.id) + '" aria-label="' + esc(x.lunar + ' ' + x.md + '，自助餐 NT$' + nt(fromPrice(x.id)) + ' 起') + '">' +
-          '<span class="cal__month">二月</span><b class="cal__lunar">' + esc(x.lunar) + '</b><span class="cal__date">' + esc(x.md.slice(3)) + '<small>週' + esc(x.wd) + '</small></span>' +
+          '<b class="cal__lunar">' + esc(x.lunar) + '</b><span class="cal__date">' + esc(Number(x.md.slice(0, 2)) + '/' + Number(x.md.slice(3))) + '<small>週' + esc(x.wd) + '</small></span>' +
           '<span class="cal__bar" aria-hidden="true"><i style="--h:' + (dp / maxDinner).toFixed(3) + '"></i></span>' +
-          '<span class="cal__from">' + nt(fromPrice(x.id)) + '<small>起</small></span></button>';
+          '<span class="cal__from"><small>NT$</small>' + nt(fromPrice(x.id)) + '<small>起</small></span></button>';
       }).join('');
     }
     function drawDay() {
       var x = kDates.filter(function (y) { return y.id === kState.date; })[0];
-      var list = dayOffers(kState.date), blocks = [];
+      var list = dayOffers(kState.date), blocks = [], segs = [];
+      // 當日所有餐期條件相同時只寫一次，避免每列重複
+      var same = list.length > 1 && list.every(function (o) { return o.deposit === list[0].deposit && !o.noDiscount; });
       list.forEach(function (o) {
         (o.slots || []).forEach(function (sl, k) {
           var sp = span(sl.time), s0 = (sp[0] - AX0) / (AX1 - AX0), dd = (sp[1] - sp[0]) / (AX1 - AX0);
           var full = /全額/.test(o.deposit);
+          segs.push('<i class="' + (kState.meal === o.meal ? 'is-hl' : '') + '" style="--s:' + s0.toFixed(4) + ';--d:' + dd.toFixed(4) + '"></i>');
           blocks.push('<article class="slot slot--' + esc(o.meal) + (kState.meal === o.meal ? ' is-hl' : '') + '" style="--s:' + s0.toFixed(4) + ';--d:' + dd.toFixed(4) + '">' +
             '<span class="slot__icon" aria-hidden="true">' + icon({ lunch: 'sun', tea: 'tea', dinner: 'moon' }[o.meal] || 'sun') + '</span>' +
-            '<span class="slot__node" aria-hidden="true">' + esc((sl.time.match(/\d{1,2}:\d{2}/) || [''])[0]) + '</span>' +
             '<p class="slot__meal">' + esc(ML[o.meal].label) + (o.slots.length > 1 ? '<small class="slot__seat">' + (k ? '第二場' : '第一場') + '</small>' : '') + '</p>' +
             '<p class="slot__time">' + esc(sl.time.replace(/^第[一二]場\s*/, '')) + '</p>' +
             '<p class="slot__price"><small>NT$</small>' + nt(sl.adult) + '</p>' +
             '<p class="slot__child">兒童 ' + nt(sl.child) + '</p>' +
-            '<span class="badge-dep' + (full ? ' is-full' : '') + '">' + esc(full ? '預付全額' : o.deposit.replace('訂金每位 ', '訂金 ')) + '</span>' +
-            (o.noDiscount ? '<span class="badge-off">不適用會員優惠</span>' : '') + '</article>');
+            (same ? '' : '<p class="slot__cond"><span class="badge-dep' + (full ? ' is-full' : '') + '">' + esc(full ? '預付全額' : o.deposit.replace('訂金每位 ', '訂金 ')) + '</span>' +
+            (o.noDiscount ? '<span class="badge-off">不適用會員優惠</span>' : '') + '</p>') + '</article>');
         });
       });
       var disc = d.discounts[kState.date];
       $('[data-dayview]', sec).innerHTML =
         '<header class="dayview__head"><h4>' + esc(x.lunar) + '<span>' + esc(x.md + '（' + x.wd + '）') + '</span></h4>' +
-        (disc ? '<p class="dayview__ribbon">' + esc(disc) + '</p>' : '') + '</header>' +
+        (disc ? '<p class="dayview__ribbon">' + esc(disc) + '</p>' : '') + (same ? '<p class="slot__cond"><span class="badge-dep">' + esc('各餐期' + list[0].deposit.replace('訂金每位 ', '訂金每位 ')) + '</span></p>' : '') + '</header>' +
+        '<div class="dayband" aria-hidden="true"><div class="dayband__bar">' + segs.join('') + '</div><div class="dayband__ticks">' + [11, 14, 17, 22].map(function (h) { return '<span style="--s:' + ((h * 60 - AX0) / (AX1 - AX0)).toFixed(4) + '">' + h + ':00</span>'; }).join('') + '</div></div>' +
         '<div class="timeline"><div class="timeline__axis" aria-hidden="true">' + axis.join('') + '</div><div class="timeline__track">' + blocks.join('') + '</div></div>';
       var tl = $('.timeline', sec); tl.classList.remove('is-swap'); void tl.offsetWidth; tl.classList.add('is-swap');
     }
