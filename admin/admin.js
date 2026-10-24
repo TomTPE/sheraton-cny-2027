@@ -47,8 +47,8 @@
   const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
   const CONTRAST_PAIRS = [
     ['ink', 'ivory', '墨色文字／暖象牙底'],
-    ['white', 'crimson', '白字／深緋紅底'],
-    ['champagne', 'night', '香檳字／夜緋紅底']
+    ['white', 'red', '白字／新春紅底'],
+    ['champagne', 'wine', '香檳字／深酒紅底']
   ];
   const AUDIT_LABELS = { save_draft: '儲存草稿', publish: '發布', rollback: '還原至草稿', upload: '上傳圖片', auth_fail: '金鑰驗證失敗' };
   const ROLE_LABELS = { editor: '編輯者', publisher: '發布者' };
@@ -79,8 +79,8 @@
     channels: '通路', spec: '規格', pickup: '提貨資訊', seal: '印章字', corporate: '企業採購', q: '問題', a: '回答',
     company: '公司名稱', hotel: '飯店名稱', copyright: '版權聲明', trademark: '商標聲明', links: '連結',
     social: '社群', legal: '法律聲明', drinkWarning: '飲酒警語',
-    ink: '墨色', white: '白', champagne: '香檳', muted: '次要文字', linen: '亞麻', crimson: '深緋紅',
-    night: '夜緋紅', red: '朱砂紅', ivory: '暖象牙', gold: '金箔'
+    ink: '墨色', white: '白', champagne: '香檳', muted: '次要文字',
+    red: '新春紅', wine: '深酒紅', ivory: '暖象牙', gold: '金線'
   };
 
   // ------------------------------------------------------------------
@@ -505,6 +505,7 @@
     if (typeof key === 'string') {
       if (key === 'status' && (typeof value === 'string' || value == null)) return selectField(path, value, STATUS_OPTIONS);
       if (key === 'imageStatus') return selectField(path, value, IMAGE_STATUS_OPTIONS);
+      if (key === 'effect' && S.draft && S.draft.hero && Array.isArray(S.draft.hero.effectOptions)) return selectField(path, value, S.draft.hero.effectOptions.map(o => [o.id, o.label]));
       if (IMAGE_KEYS.has(key) && typeof value === 'string') return imageField(path, value, parent);
     }
     if (Array.isArray(value)) return arrayField(path, value);

@@ -71,7 +71,27 @@ for r in sorted(refs):
     if not (DIST / r).is_file():
         err("引用的檔案不存在：" + r)
 
-# 4. 統計
+# 4. 色票一致：CSS 與 SVG 只能使用 brand.approvedPalette 的顏色（rgba 需為色盤顏色加透明度）
+palette = {c["hex"].upper() for c in data["brand"]["approvedPalette"]}
+rgb_ok = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in palette}
+def expand(h):
+    h = h.upper()
+    return "#" + "".join(ch * 2 for ch in h[1:]) if len(h) == 4 else h
+color_files = list(DIST.rglob("*.css")) + list(DIST.rglob("*.svg"))
+off = {}
+for f in color_files:
+    txt = re.sub(r"/\*.*?\*/", "", f.read_text(encoding="utf-8"), flags=re.S)
+    for h in re.findall(r"#[0-9A-Fa-f]{6}\b|#[0-9A-Fa-f]{3}\b", txt):
+        if expand(h) not in palette:
+            off.setdefault(str(f.relative_to(DIST)), set()).add(h)
+    for r, g, b in re.findall(r"rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", txt):
+        if (int(r), int(g), int(b)) not in rgb_ok:
+            off.setdefault(str(f.relative_to(DIST)), set()).add("rgb(%s,%s,%s)" % (r, g, b))
+for f, cs in off.items():
+    err("色盤外的顏色 %s：%s" % (f, "、".join(sorted(cs))))
+notes.append("色票檢查：%d 個檔案，核准色盤 %d 色" % (len(color_files), len(palette)))
+
+# 5. 統計
 ctas = sum(len(i.get("ctas", [])) for sec in ("takeaway", "gifts", "events") for i in data[sec]["items"])
 size = sum(p.stat().st_size for p in DIST.rglob("*") if p.is_file())
 notes.append("引用檔案 %d 個、商品與活動 CTA %d 個、總大小 %.1f MB" % (len(refs), ctas, size / 1e6))

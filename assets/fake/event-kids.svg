@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600"><defs><radialGradient id="g" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#5c2326"/><stop offset=".55" stop-color="#451B1D"/><stop offset="1" stop-color="#220C0E"/></radialGradient><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .85  0 0 0 0 .6  0 0 0 .12 0"/></filter></defs>
-<rect width="800" height="600" fill="url(#g)"/><rect width="800" height="600" filter="url(#n)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600"><defs><radialGradient id="g" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#A01C1F"/><stop offset=".55" stop-color="#A01C1F"/><stop offset="1" stop-color="#4A0E10"/></radialGradient></defs>
+<rect width="800" height="600" fill="url(#g)"/>
 <circle cx="400" cy="300" r="170" fill="none" stroke="#F7D6B4" stroke-opacity=".22"/><circle cx="400" cy="300" r="184" fill="none" stroke="#F7D6B4" stroke-opacity=".12" stroke-dasharray="2 8"/>
-<g fill="none" stroke="#E6C793" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M400 140 L400 190"/><path d="M400 190 L424 246 L486 250 L438 288 L454 348 L400 314 L346 348 L362 288 L314 250 L376 246 Z"/><circle cx="400" cy="300" r="10"/></g>
+<g fill="none" stroke="#F7D6B4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M400 140 L400 190"/><path d="M400 190 L424 246 L486 250 L438 288 L454 348 L400 314 L346 348 L362 288 L314 250 L376 246 Z"/><circle cx="400" cy="300" r="10"/></g>
 
 </svg>

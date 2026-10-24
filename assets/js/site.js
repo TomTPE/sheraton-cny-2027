@@ -54,8 +54,8 @@
     if (!list || !list.length) return '';
     return '<div class="ctas">' + list.map(function (c, i) { return cta(c, i === 0 ? 'gold' : (dark ? 'line-light' : 'line')); }).join('') + '</div>';
   }
-  function photo(src, alt, status, frame, sealChar) {
-    if (!src) return '<div class="photo"><div class="seal" aria-hidden="true"><span>' + esc(sealChar || '囍') + '</span></div></div>';
+  function photo(src, alt, status, frame) {
+    if (!src) return '<div class="photo photo--empty"><span>影像準備中</span></div>';
     var tag = status === 'placeholder' || status === 'reference' ? '<span class="ph-tag">示意圖</span>' : '';
     return '<div class="photo' + (frame ? ' photo--frame' : '') + '"><img src="' + esc(src) + '" alt="' + esc(alt || '') + '" loading="lazy" decoding="async">' + tag + '</div>';
   }
@@ -81,18 +81,77 @@
   }
 
   /* ---------- HERO ---------- */
+  var slideshow = { list: [], idx: 0, timer: 0, paused: false, userPaused: false, visible: true };
+  function loadArtFont(text) {
+    var fam = (D.brand.fonts && D.brand.fonts.art) || 'LXGW WenKai TC';
+    var l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fam).replace(/%20/g, '+') + ':wght@400&display=swap&text=' + encodeURIComponent(text);
+    document.head.appendChild(l);
+  }
   function renderHero() {
     var h = D.hero;
     $('[data-hero-eyebrow]').textContent = h.eyebrow;
-    $('[data-hero-title]').innerHTML = h.title.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+    // 主標逐字遮罩揭示
+    var n = 0;
+    $('[data-hero-title]').innerHTML = h.title.map(function (t) {
+      return '<span class="hero__word">' + Array.from(t).map(function (c) { return '<span class="ch"><span style="--i:' + (n++) + '">' + esc(c) + '</span></span>'; }).join('') + '</span>';
+    }).join('');
+    $('[data-hero-title]').setAttribute('aria-label', h.title.join(''));
+    loadArtFont(h.title.join(''));
     $('[data-hero-lead]').textContent = h.lead;
-    var img = $('[data-hero-img]'); img.src = h.image; img.alt = h.imageAlt || '';
-    $('[data-hero-tag]').hidden = !(h.imageStatus === 'placeholder' || h.imageStatus === 'reference');
+    var list = (h.slides || []).filter(visible);
+    slideshow.list = list;
+    $('[data-track]').innerHTML = list.map(function (sl, i) {
+      return '<img class="slide" src="' + esc(sl.image) + '" alt="' + esc(sl.imageAlt || '') + '" width="1400" height="934"' + (i ? ' loading="lazy"' : '') + ' decoding="async" data-slide="' + i + '">';
+    }).join('');
+    $('[data-segs]').innerHTML = list.map(function (sl, i) {
+      return '<button type="button" class="seg" data-seg="' + i + '" aria-label="' + esc('顯示' + sl.venue + '影像') + '"><i></i></button>';
+    }).join('');
+    $('[data-slidebar]').hidden = list.length < 2;
     $('[data-scenes]').innerHTML = h.scenes.map(function (s, i) {
       return '<div class="scene" data-scene="' + i + '"><p class="scene__kicker">' + esc(s.kicker) + '</p><h2>' + esc(s.title) + '</h2><p>' + esc(s.text) + '</p>' +
         '<a class="btn btn--gold" href="#' + esc(s.target) + '" tabindex="-1">' + esc('前往' + s.kicker) + icon('arrow') + '</a></div>';
     }).join('');
     $('[data-dots]').innerHTML = h.scenes.map(function () { return '<li></li>'; }).join('');
+  }
+
+  /* ---------- 餐廳輪播：每次開啟隨機起始、自動輪播、可暫停 ---------- */
+  function startSlideshow() {
+    var S = slideshow, cfg = D.hero.slideshow || {}, n = S.list.length;
+    if (!n) return;
+    var dur = Math.max(3, Number(cfg.intervalSec) || 6) * 1000;
+    $('[data-hero]').style.setProperty('--slide-dur', dur + 'ms');
+    var last = -1; try { last = Number(localStorage.getItem('heroSlide')); } catch (e) { /* 無痕模式 */ }
+    if (cfg.randomStart !== false && n > 1) { do { S.idx = Math.floor(Math.random() * n); } while (S.idx === last); }
+    try { localStorage.setItem('heroSlide', String(S.idx)); } catch (e) { /* ignore */ }
+    var imgs = $$('[data-slide]'), segs = $$('[data-seg]'), venue = $('[data-venue]'), pause = $('[data-pause]');
+    var hero = $('[data-hero]');
+    function show(i) {
+      S.idx = (i + n) % n;
+      imgs.forEach(function (im, k) { var on = k === S.idx; im.classList.toggle('is-on', on); if (on) { im.loading = 'eager'; im.style.animation = 'none'; void im.offsetWidth; im.style.animation = ''; } });
+      segs.forEach(function (b, k) { b.classList.toggle('is-done', k < S.idx); b.classList.remove('is-on'); if (k === S.idx) { void b.offsetWidth; b.classList.add('is-on'); } b.setAttribute('aria-current', k === S.idx ? 'true' : 'false'); });
+      var sl = S.list[S.idx];
+      venue.innerHTML = '<b>' + esc(sl.venue) + '</b><span>' + esc(sl.label) + '</span>';
+      var nx = imgs[(S.idx + 1) % n]; if (nx) nx.loading = 'eager';
+      schedule();
+    }
+    function running() { return cfg.autoplay !== false && !REDUCED && !S.userPaused && S.visible && !document.hidden; }
+    function schedule() {
+      clearTimeout(S.timer);
+      hero.classList.toggle('is-paused', !running());
+      if (running()) S.timer = setTimeout(function () { show(S.idx + 1); }, dur);
+    }
+    $('[data-segs]').addEventListener('click', function (e) { var b = e.target.closest('[data-seg]'); if (b) show(Number(b.dataset.seg)); });
+    pause.addEventListener('click', function () {
+      S.userPaused = !S.userPaused;
+      pause.setAttribute('aria-pressed', String(S.userPaused));
+      pause.setAttribute('aria-label', S.userPaused ? '繼續輪播' : '暫停輪播');
+      show(S.idx);
+    });
+    document.addEventListener('visibilitychange', schedule);
+    S.reschedule = function (vis) { if (vis !== S.visible) { S.visible = vis; if (vis) show(S.idx); else schedule(); } };
+    if (REDUCED || cfg.autoplay === false) pause.hidden = true;
+    show(S.idx);
   }
 
   /* ---------- 四大需求入口 ---------- */
@@ -108,7 +167,7 @@
     if (t === 'dining') {
       var a = [];
       D.dining.offers.filter(visible).forEach(function (o) { (o.slots || []).forEach(function (s) { a.push(s.adult); }); });
-      if (a.length) return '自助餐 NT$' + nt(Math.min.apply(null, a)) + ' 起＋10%';
+      if (a.length) return 'NT$' + nt(Math.min.apply(null, a)) + ' 起＋10%';
     }
     if (t === 'gifts') {
       var g = D.gifts.items.filter(function (i) { return visible(i) && i.status === 'onsale' && i.price; });
@@ -119,18 +178,27 @@
   function renderPaths() {
     var P = D.paths, sec = $('[data-section=paths]');
     if (!P || !P.items) { sec.hidden = true; return; }
-    sec.innerHTML = '<div class="wrap"><header class="paths__head" data-reveal><h2 id="paths-title">' + esc(P.title) + '</h2>' + (P.lead ? '<p>' + esc(P.lead) + '</p>' : '') + '</header><div class="paths">' +
-      P.items.filter(visible).map(function (it, i) {
+    // 照片磚＋春聯式直排標題；桌機滑過展開，手機 2×2 直接點選
+    sec.innerHTML = '<div class="wrap"><header class="paths__head" data-reveal><h2 id="paths-title">' + esc(P.title) + '</h2>' + (P.lead ? '<p>' + esc(P.lead) + '</p>' : '') + '</header>' +
+      '<div class="paths" data-paths>' + P.items.filter(visible).map(function (it, i) {
         var c = (it.ctas && it.ctas[0]) || {}, sold = it.status === 'soldout';
         var pre = c.preset ? ' data-preset="' + esc(JSON.stringify(c.preset)) + '"' : '';
         var hint = pathHint(it);
-        return '<a class="path' + (sold ? ' path--sold' : '') + '" href="#' + esc(c.target) + '"' + pre + ' data-reveal style="--d:' + (i * .07) + 's">' +
-          '<span class="path__icon">' + icon(it.icon || 'arrow') + '</span>' +
-          '<span class="path__need">' + esc(it.need) + '</span><strong class="path__title">' + esc(it.title) + '</strong>' +
-          '<span class="path__desc">' + esc(it.desc) + '</span>' +
-          (hint ? '<span class="path__hint">' + esc(hint) + '</span>' : '') +
-          '<span class="path__go">' + esc(c.label || '前往') + icon('arrow') + '</span></a>';
-      }).join('') + '</div></div>';
+        return '<a class="door' + (sold ? ' door--sold' : '') + (i === 0 ? ' is-open' : '') + '" href="#' + esc(c.target) + '"' + pre + ' data-reveal style="--d:' + (i * .08) + 's"' +
+          ' aria-label="' + esc(it.need + '，' + it.title + '，' + (hint ? hint + '，' : '') + (c.label || '')) + '">' +
+          '<span class="door__media">' + (it.image ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" decoding="async">' : '') + '</span>' +
+          '<span class="door__num" aria-hidden="true">' + esc(it.order || '') + '</span>' +
+          '<span class="door__couplet" aria-hidden="true">' + esc(it.couplet || it.title) + '</span>' +
+          (sold ? '<span class="door__stamp" aria-hidden="true">售完</span>' : '') +
+          '<span class="door__body"><span class="door__need">' + esc(it.need) + '</span><strong class="door__title">' + esc(it.title) + '</strong>' +
+          '<span class="door__desc">' + esc(it.desc) + '</span>' +
+          (hint ? '<span class="door__hint">' + esc(hint) + '</span>' : '') +
+          '<span class="door__go">' + esc(c.label || '前往') + icon('arrow') + '</span></span></a>';
+      }).join('') + '</div><p class="paths__note">影像為往年料理示意</p></div>';
+    var wrap = $('[data-paths]', sec);
+    function open(el) { $$('.door', wrap).forEach(function (d) { d.classList.toggle('is-open', d === el); }); }
+    wrap.addEventListener('pointerenter', function (e) { var d = e.target.closest && e.target.closest('.door'); if (d && e.pointerType === 'mouse') open(d); }, true);
+    wrap.addEventListener('focusin', function (e) { var d = e.target.closest('.door'); if (d) open(d); });
   }
 
   /* ---------- 外帶年菜 ---------- */
@@ -143,7 +211,7 @@
     var sub = kind === 'gift' ? esc(it.spec) : esc(it.serve);
     return '<article class="card" data-reveal>' +
       '<button type="button" class="card__media" data-detail="' + esc(kind + ':' + it.id) + '" aria-label="' + esc('查看' + it.name + '詳情') + '">' +
-      photo(it.image, it.imageAlt || it.name, it.imageStatus, false, it.seal || (it.venue || '').charAt(0)) + '</button>' +
+      photo(it.image, it.imageAlt || it.name, it.imageStatus, false) + '</button>' +
       '<div class="card__body"><p class="card__venue">' + esc(it.venue) + (it.tag ? '<span>' + esc(it.tag) + '</span>' : '') + '</p>' +
       '<h3>' + esc(it.name) + '</h3><p class="card__meta">' + sub + '</p>' + status +
       (it.pickup ? '<p class="card__meta">' + esc(it.pickup) + '</p>' : '') +
@@ -151,27 +219,19 @@
   }
   function renderTakeaway() {
     var t = D.takeaway, items = t.items.filter(visible);
-    var feat = items.filter(function (i) { return i.featured; })[0];
-    var rest = items.filter(function (i) { return i !== feat; });
-    var html = head('takeaway', t.title, t.lead, '<div class="rail-ctrl" data-rail-ctrl="tk"><button class="rail-btn" data-dir="-1" aria-label="上一個">' + icon('arrow') + '</button><button class="rail-btn" data-dir="1" aria-label="下一個">' + icon('arrow') + '</button></div>');
-    if (feat) {
-      html += '<article class="feature" data-reveal>' + photo(feat.image, feat.imageAlt, feat.imageStatus, true) +
-        '<div class="feature__body"><p class="tag">' + esc(feat.venue + '　' + feat.tag) + '</p><h3>' + esc(feat.name) + '</h3><p class="feature__serve">' + esc(feat.serve) + '</p>' +
-        '<p class="price"><b><small>NT$</small>' + nt(feat.price) + '</b>' + (feat.originalPrice ? '<s>原價 NT$' + nt(feat.originalPrice) + '</s>' : '') + '<em>' + esc(feat.priceNote) + '</em></p>' +
-        '<dl class="periods">' + feat.periods.map(function (p) { return '<div><dt>' + esc(p.label) + '</dt><dd>' + esc(p.value) + '</dd></div>'; }).join('') + '</dl>' +
-        '<p class="feature__desc">' + esc(feat.desc) + '</p>' +
-        '<details class="menu-fold"><summary>完整菜單</summary><ol>' + feat.menu.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ol></details>' +
-        ctas(feat.ctas, true, feat.status === 'soldout') + '<p class="feature__fine">' + esc(feat.notes) + '</p>' + verify(feat.verify, feat.name) + '</div></article>';
-    }
+    var rest = items;
+    var ctrl = '<div class="rail-ctrl" data-rail-ctrl="tk"><button class="rail-btn" data-dir="-1" aria-label="上一個">' + icon('arrow') + '</button><button class="rail-btn rail-pause" type="button" data-rail-pause aria-pressed="false" aria-label="暫停自動輪播"><span></span></button><button class="rail-btn" data-dir="1" aria-label="下一個">' + icon('arrow') + '</button></div>';
+    var html = head('takeaway', t.title, t.lead);
+    html += '<div class="sub-head sub-head--row" data-reveal><div><h3>年菜品項</h3><p>宴會廳冷凍年菜已開放預購，各餐廳品項陸續公布。</p></div>' + ctrl + '</div>';
     html += '<div class="filters" role="group" aria-label="年菜類型" data-tk-filter>' + t.categories.map(function (c) {
       return '<button type="button" aria-pressed="' + (c.id === tkCat) + '" data-cat="' + esc(c.id) + '">' + esc(c.label) + '</button>';
-    }).join('') + '</div><div class="rail rail--grid" data-rail="tk" data-tk-list></div>';
+    }).join('') + '</div><div class="rail" data-rail="tk" data-tk-list></div>';
     var sec = $('[data-section=takeaway]');
     sec.innerHTML = '<div class="wrap">' + html + '</div>';
     function list() {
       var shown = rest.filter(function (i) { return tkCat === 'all' || i.category === tkCat; });
-      if (tkCat === 'frozen' && feat) shown = [feat].concat(shown);
-      $('[data-tk-list]', sec).innerHTML = shown.length ? shown.map(function (i) { return itemCard(i, 'tk'); }).join('') : '<p class="empty">此類別品項即將公布。</p>';
+      var railEl = $('[data-tk-list]', sec); railEl.dispatchEvent(new Event('rail:reset'));
+      railEl.innerHTML = shown.length ? shown.map(function (i) { return itemCard(i, 'tk'); }).join('') : '<p class="empty">此類別品項即將公布。</p>';
       observeReveal(sec);
     }
     $('[data-tk-filter]', sec).addEventListener('click', function (e) {
@@ -183,61 +243,108 @@
     list();
   }
 
-  /* ---------- 餐廳內用 ---------- */
-  var st = {};
+  /* ---------- 各餐廳除夕菜單：圖像化超連結 ---------- */
+  function menusHtml(M) {
+    if (!M || !M.items) return '';
+    return '<div class="menus" data-reveal><div class="sub-head"><h3>' + esc(M.title) + '</h3>' + (M.lead ? '<p>' + esc(M.lead) + '</p>' : '') + '</div>' + verify(M.verify, M.title) +
+        '<ul class="menu-grid">' + M.items.filter(visible).map(function (m) {
+          var c = (m.ctas && m.ctas[0]) || {}, ext = c.type === 'link' || c.type === 'booking' || c.type === 'buy';
+          var href = c.type === 'anchor' ? '#' + c.target : (c.url || '#');
+          var pre = c.preset ? ' data-preset="' + esc(JSON.stringify(c.preset)) + '"' : '';
+          var st = m.status === 'soldout' ? ' is-sold' : (m.status === 'confirmed' ? ' is-open' : '');
+          var media = m.image ? '<img src="' + esc(m.image) + '" alt="" loading="lazy" decoding="async">' : '';
+          return '<li><a class="menu-tile' + st + '" href="' + esc(href) + '"' + pre + (ext ? ' target="_blank" rel="noopener"' : '') +
+            ' aria-label="' + esc(m.venue + '，' + m.note + '，' + (c.label || '') + (ext ? '（另開新視窗）' : '')) + '">' +
+            '<span class="menu-tile__media">' + media + (m.imageStatus === 'reference' || m.imageStatus === 'placeholder' ? '<span class="ph-tag">示意圖</span>' : '') + '</span>' +
+            '<span class="menu-tile__body"><span class="menu-tile__label">' + esc(m.label) + '</span><strong>' + esc(m.venue) + '</strong>' +
+            '<span class="menu-tile__note">' + esc(m.note) + '</span><span class="menu-tile__go">' + esc(c.label || '查看') + icon('arrow') + '</span></span></a></li>';
+        }).join('') + '</ul></div>';
+  }
+
+  /* ---------- 餐廳內用：十二廚價目表＋大廳酒吧補充 ---------- */
   function renderDining() {
-    var d = D.dining; st.date = st.date || d.defaultDate; st.meal = st.meal || d.defaultMeal;
+    var d = D.dining;
     var R = {}; d.restaurants.forEach(function (r) { R[r.id] = r; });
-    var sec = $('[data-section=dining]');
-    var rooms = d.rooms;
-    sec.innerHTML = '<div class="wrap">' + head('dining', d.title, d.lead) +
-      '<div class="finder" data-reveal><div class="dates" role="radiogroup" aria-label="選擇日期" data-dates></div>' +
-      '<div class="meals" role="radiogroup" aria-label="選擇餐期" data-meals></div>' +
-      '<p class="finder__sum" aria-live="polite" data-sum></p><div class="offers" data-offers></div>' + verify(d.verify, '餐廳內用') + '</div>' +
+    var DT = {}; d.dates.forEach(function (x) { DT[x.id] = x; });
+    var ML = {}; d.meals.forEach(function (x, i) { ML[x.id] = { label: x.label, order: i }; });
+    var sec = $('[data-section=dining]'), rooms = d.rooms;
+    var k12 = R.kitchen12, lounge = R.lounge;
+
+    // 十二廚：日曆頁日期列＋當日時間軸（資訊圖像化）
+    var kOffers = d.offers.filter(function (o) { return visible(o) && o.restaurant === 'kitchen12'; });
+    var kDates = d.dates.filter(function (x) { return kOffers.some(function (o) { return o.dates.indexOf(x.id) > -1; }); });
+    function dayOffers(id) { return kOffers.filter(function (o) { return o.dates.indexOf(id) > -1; }).sort(function (a, b) { return ML[a.meal].order - ML[b.meal].order; }); }
+    function minutes(t) { var m = /(\d{1,2}):(\d{2})/.exec(t); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; }
+    function span(t) { var m = /(\d{1,2}:\d{2})\D+(\d{1,2}:\d{2})/.exec(t); return m ? [minutes(m[1]), minutes(m[2])] : [0, 0]; }
+    function dinnerPrice(id) { var o = dayOffers(id).filter(function (x) { return x.meal === 'dinner'; })[0]; return o && o.slots ? o.slots[0].adult : 0; }
+    function fromPrice(id) { var a = []; dayOffers(id).forEach(function (o) { (o.slots || []).forEach(function (sl) { a.push(sl.adult); }); }); return a.length ? Math.min.apply(null, a) : 0; }
+    var maxDinner = Math.max.apply(null, kDates.map(function (x) { return dinnerPrice(x.id); }).concat([1]));
+    var AX0 = 11 * 60, AX1 = 22 * 60;
+    var axis = []; for (var hh = 11; hh <= 21; hh += 2) axis.push('<span style="--s:' + ((hh * 60 - AX0) / (AX1 - AX0)).toFixed(4) + '">' + hh + ':00</span>');
+    var kState = { date: d.defaultDate || (kDates[0] && kDates[0].id), meal: '' };
+    // 大廳酒吧：只留一行補充（除夕晚餐固定價，其餘單點）
+    var lgEve = d.offers.filter(function (o) { return visible(o) && o.restaurant === 'lounge' && o.slots; })[0];
+    var loungeLine = lgEve ? '除夕晚餐兩場次 成人 NT$' + nt(lgEve.slots[0].adult) + '／兒童 NT$' + nt(lgEve.slots[0].child) + '，須預付全額，' + (lgEve.bookingNote || '') + '；其他時段為制式單點菜單。' : '除夕及春節期間為制式單點菜單。';
+
+    sec.innerHTML = '<div class="wrap">' + head('dining', d.title, d.lead) + menusHtml(d.menus) +
+      '<div class="sub-head sub-head--row" data-reveal><div><h3>' + esc(d.finderTitle || '十二廚 除夕・春節餐價') + '</h3><p>' + esc(k12.name + '　' + k12.type) + '｜價格為新台幣，另加 10% 服務費</p></div></div>' +
+      '<div class="daybook" id="finder" data-reveal>' +
+      '<div class="cal" role="radiogroup" aria-label="選擇日期" data-cal></div>' +
+      '<div class="dayview" aria-live="polite" data-dayview></div>' +
+      '<div class="daybook__foot"><p>價格為新台幣，另加 10% 服務費。除夕及春節期間僅受理電話訂位。</p>' +
+      ctas([{ type: 'phone', label: '電話訂位　十二廚', tel: k12.tel, note: k12.telDisplay }, { type: 'link', label: '餐廳介紹', url: k12.page }]) + '</div>' + verify(d.verify, '餐廳內用') + '</div>' +
+      (d.showLounge && lounge ? '<div class="lounge-line" data-reveal><div><b>' + esc(lounge.name) + '</b><p>' + esc(loungeLine) + '</p></div>' +
+      ctas([{ type: 'booking', label: '線上訂位', url: lounge.booking.url }, { type: 'phone', label: '電話', tel: lounge.tel }]) + '</div>' : '') +
       '<details class="fold" data-reveal><summary>' + esc(rooms.title) + '</summary><div class="fold__body"><table class="tbl"><thead><tr>' +
       rooms.columns.map(function (c) { return '<th scope="col">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       rooms.rows.map(function (r) { return '<tr><th scope="row">' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td><td>' + nt(r[2]) + '</td><td>' + nt(r[3]) + '</td></tr>'; }).join('') +
       '</tbody></table><p class="card__meta" style="margin-top:10px">金額單位新台幣，含服務費依 MEMO 規定。包廂需求請電話洽詢。</p>' + verify(rooms.verify, '包廂低消') + '</div></details></div>';
 
-    function radios(el, arr, cur, fn) {
-      el.innerHTML = arr.map(function (x) { var on = x.id === cur; return '<button type="button" role="radio" aria-checked="' + on + '" tabindex="' + (on ? 0 : -1) + '" data-id="' + esc(x.id) + '">' + fn(x) + '</button>'; }).join('');
+    function drawCal() {
+      $('[data-cal]', sec).innerHTML = kDates.map(function (x) {
+        var on = x.id === kState.date, dp = dinnerPrice(x.id);
+        return '<button type="button" class="cal__day" role="radio" aria-checked="' + on + '" tabindex="' + (on ? 0 : -1) + '" data-id="' + esc(x.id) + '" aria-label="' + esc(x.lunar + ' ' + x.md + '，自助餐 NT$' + nt(fromPrice(x.id)) + ' 起') + '">' +
+          '<span class="cal__month">二月</span><b class="cal__lunar">' + esc(x.lunar) + '</b><span class="cal__date">' + esc(x.md.slice(3)) + '<small>週' + esc(x.wd) + '</small></span>' +
+          '<span class="cal__bar" aria-hidden="true"><i style="--h:' + (dp / maxDinner).toFixed(3) + '"></i></span>' +
+          '<span class="cal__from">' + nt(fromPrice(x.id)) + '<small>起</small></span></button>';
+      }).join('');
     }
-    function offerCtas(o) {
-      var r = R[o.restaurant];
-      if (o.booking === 'online' && r.booking && r.booking.url) {
-        return [{ type: 'booking', label: '線上訂位', url: r.booking.url }, { type: 'phone', label: '電話訂位', tel: r.tel }];
-      }
-      return [{ type: 'phone', label: '電話訂位', tel: o.bookingTel || r.tel, note: o.bookingNote }];
-    }
-    function draw() {
-      radios($('[data-dates]', sec), d.dates, st.date, function (x) { return '<b>' + esc(x.lunar) + '</b><small>' + esc(x.md + '（' + x.wd + '）') + '</small>'; });
-      radios($('[data-meals]', sec), d.meals, st.meal, function (x) { return esc(x.label); });
-      var dd = d.dates.filter(function (x) { return x.id === st.date; })[0], mm = d.meals.filter(function (x) { return x.id === st.meal; })[0];
-      var list = d.offers.filter(function (o) { return visible(o) && o.meal === st.meal && o.dates.indexOf(st.date) > -1; });
-      $('[data-sum]', sec).textContent = dd.lunar + ' ' + dd.md + '（' + dd.wd + '）' + mm.label + '：' + list.length + ' 個選擇';
-      var disc = d.discounts[st.date];
-      $('[data-offers]', sec).innerHTML = list.length ? list.map(function (o) {
-        var r = R[o.restaurant];
-        var body = o.slots ? '<ul class="slots">' + o.slots.map(function (s) {
-          return '<li><span>' + esc(s.time) + '</span><b>' + nt(s.adult) + '<small>成人</small></b>' + (s.child ? '<i>兒童 ' + nt(s.child) + '</i>' : '') + '</li>';
-        }).join('') + '</ul>' : '<p class="offer__alc">' + esc(o.note) + '</p>';
-        var dl = o.noDiscount ? '本餐期不適用會員優惠' : (disc || '');
-        var phoneOnly = o.booking === 'phone' && r.booking && r.booking.cnyPhoneOnly ? '除夕及春節期間僅受理電話訂位。' : '';
-        return '<article class="offer"><p class="offer__venue"><span>' + esc(r.name + '　' + r.type) + '</span><a href="' + esc(r.page) + '" target="_blank" rel="noopener">餐廳介紹</a></p><h3>' + esc(o.title) + '</h3>' + body +
-          '<p class="offer__meta">價格為新台幣，另加 10% 服務費。' + esc(o.deposit) + '。' + (o.extra ? esc(o.extra) + '。' : '') + esc(phoneOnly) + '</p>' +
-          (dl ? '<p class="offer__disc">' + esc(dl) + '</p>' : '') + ctas(offerCtas(o)) + '</article>';
-      }).join('') : '<p class="empty">這個時段沒有已公布的餐價，請改選其他餐期，或來電 ' + esc(D.contacts.main.display) + ' 洽詢。</p>';
-    }
-    function bind(el, key) {
-      el.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st[key] = b.dataset.id; draw(); $('[data-id="' + st[key] + '"]', el).focus(); });
-      el.addEventListener('keydown', function (e) {
-        var dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!dir) return; e.preventDefault();
-        var bs = $$('button', el), i = bs.indexOf(document.activeElement), n = bs[(i + dir + bs.length) % bs.length];
-        st[key] = n.dataset.id; draw(); $('[data-id="' + st[key] + '"]', el).focus();
+    function drawDay() {
+      var x = kDates.filter(function (y) { return y.id === kState.date; })[0];
+      var list = dayOffers(kState.date), blocks = [];
+      list.forEach(function (o) {
+        (o.slots || []).forEach(function (sl, k) {
+          var sp = span(sl.time), s0 = (sp[0] - AX0) / (AX1 - AX0), dd = (sp[1] - sp[0]) / (AX1 - AX0);
+          var full = /全額/.test(o.deposit);
+          blocks.push('<article class="slot slot--' + esc(o.meal) + (kState.meal === o.meal ? ' is-hl' : '') + '" style="--s:' + s0.toFixed(4) + ';--d:' + dd.toFixed(4) + '">' +
+            '<span class="slot__icon" aria-hidden="true">' + icon({ lunch: 'sun', tea: 'tea', dinner: 'moon' }[o.meal] || 'sun') + '</span>' +
+            '<span class="slot__node" aria-hidden="true">' + esc((sl.time.match(/\d{1,2}:\d{2}/) || [''])[0]) + '</span>' +
+            '<p class="slot__meal">' + esc(ML[o.meal].label) + (o.slots.length > 1 ? '<small class="slot__seat">' + (k ? '第二場' : '第一場') + '</small>' : '') + '</p>' +
+            '<p class="slot__time">' + esc(sl.time.replace(/^第[一二]場\s*/, '')) + '</p>' +
+            '<p class="slot__price"><small>NT$</small>' + nt(sl.adult) + '</p>' +
+            '<p class="slot__child">兒童 ' + nt(sl.child) + '</p>' +
+            '<span class="badge-dep' + (full ? ' is-full' : '') + '">' + esc(full ? '預付全額' : o.deposit.replace('訂金每位 ', '訂金 ')) + '</span>' +
+            (o.noDiscount ? '<span class="badge-off">不適用會員優惠</span>' : '') + '</article>');
+        });
       });
+      var disc = d.discounts[kState.date];
+      $('[data-dayview]', sec).innerHTML =
+        '<header class="dayview__head"><h4>' + esc(x.lunar) + '<span>' + esc(x.md + '（' + x.wd + '）') + '</span></h4>' +
+        (disc ? '<p class="dayview__ribbon">' + esc(disc) + '</p>' : '') + '</header>' +
+        '<div class="timeline"><div class="timeline__axis" aria-hidden="true">' + axis.join('') + '</div><div class="timeline__track">' + blocks.join('') + '</div></div>';
+      var tl = $('.timeline', sec); tl.classList.remove('is-swap'); void tl.offsetWidth; tl.classList.add('is-swap');
     }
-    bind($('[data-dates]', sec), 'date'); bind($('[data-meals]', sec), 'meal'); draw();
-    renderDining.set = function (p) { if (p.date) st.date = p.date; if (p.meal) st.meal = p.meal; draw(); };
+    function pick(id) { kState.date = id; drawCal(); drawDay(); }
+    var cal = $('[data-cal]', sec);
+    cal.addEventListener('click', function (e) { var b = e.target.closest('[data-id]'); if (!b) return; kState.meal = ''; pick(b.dataset.id); $('[data-id="' + kState.date + '"]', cal).focus(); });
+    cal.addEventListener('keydown', function (e) {
+      var dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!dir) return; e.preventDefault();
+      var bs = $$('[data-id]', cal), i2 = bs.map(function (b) { return b.dataset.id; }).indexOf(kState.date);
+      pick(bs[(i2 + dir + bs.length) % bs.length].dataset.id); $('[data-id="' + kState.date + '"]', cal).focus();
+    });
+    pick(kState.date);
+    // 帶入日期的連結（例如宴會廳售完改訂除夕晚餐）：切到該日並標示餐期
+    renderDining.set = function (p) { kState.meal = p.meal || ''; if (p.date) pick(p.date); else drawDay(); };
   }
 
   /* ---------- 宴會廳（售完，縮小） ---------- */
@@ -266,7 +373,7 @@
         return '<article class="event" data-reveal style="--d:' + (k % 3) * .08 + 's">' + photo(i.image, i.title + '示意圖', i.imageStatus) +
           '<div><p class="event__time">' + esc(i.time + '　' + i.place) + '</p><h3>' + esc(i.title) + '</h3><p class="event__desc">' + esc(i.desc) + '</p>' +
           '<span class="event__tag' + (ok ? ' event__tag--ok' : '') + '">' + esc(ok ? i.tag : '示意內容，待公布') + '</span>' + ctas(i.ctas, true) + '</div></article>';
-      }).join('') : '<p class="empty" style="color:rgba(255,255,255,.7);border-color:var(--line-d)">當日活動規劃中，敬請期待。</p>';
+      }).join('') : '<p class="empty empty--dark">當日活動規劃中，敬請期待。</p>';
       observeReveal(sec);
     }
     $('[data-days]', sec).addEventListener('click', function (e) {
@@ -279,9 +386,15 @@
   /* ---------- 通路伴手禮 ---------- */
   function renderGifts() {
     var g = D.gifts, sec = $('[data-section=gifts]');
-    sec.innerHTML = '<div class="wrap">' + head('gifts', g.title, g.lead, '<div class="rail-ctrl" data-rail-ctrl="gf"><button class="rail-btn" data-dir="-1" aria-label="上一個">' + icon('arrow') + '</button><button class="rail-btn" data-dir="1" aria-label="下一個">' + icon('arrow') + '</button></div>') +
-      '<ul class="channels" aria-label="購買通路">' + g.channels.map(function (c) { return '<li>' + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.label) + '</a>' : esc(c.label)) + '</li>'; }).join('') + '</ul>' +
-      '<div class="rail rail--grid" data-rail="gf">' + g.items.filter(visible).map(function (i) { return itemCard(i, 'gift'); }).join('') + '</div>' +
+    var ctrl = '<div class="rail-ctrl" data-rail-ctrl="gf"><button class="rail-btn" data-dir="-1" aria-label="上一個">' + icon('arrow') + '</button><button class="rail-btn rail-pause" type="button" data-rail-pause aria-pressed="false" aria-label="暫停自動輪播"><span></span></button><button class="rail-btn" data-dir="1" aria-label="下一個">' + icon('arrow') + '</button></div>';
+    // 伴手禮：淺色橫幅＋通路標籤
+    sec.innerHTML = '<div class="gift-hero"><div class="wrap"><span class="couplet gift-hero__couplet" aria-hidden="true">' + esc(g.couplet || '新春好禮') + '</span>' +
+      '<header class="gift-hero__head" data-reveal><p class="gift-hero__kicker">' + esc(g.kicker || '新春好禮') + '</p>' +
+      '<h2 id="gifts-title">' + esc(g.title) + '</h2>' + (g.tagline ? '<p class="gift-hero__tagline">' + esc(g.tagline) + '</p>' : '') +
+      '<p class="gift-hero__lead">' + esc(g.lead) + '</p></header>' +
+      '<ul class="channels" aria-label="購買通路">' + g.channels.map(function (c) { return '<li>' + (c.url ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.label) + icon('arrow') + '</a>' : esc(c.label)) + '</li>'; }).join('') + '</ul>' +
+      '</div></div><div class="wrap gift-body"><div class="sub-head sub-head--row" data-reveal><div><h3>' + esc(g.listTitle || '人氣禮盒') + '</h3></div>' + ctrl + '</div>' +
+      '<div class="rail" data-rail="gf">' + g.items.filter(visible).map(function (i) { return itemCard(i, 'gift'); }).join('') + '</div>' +
       '<div class="corp" data-reveal><div><h3>' + esc(g.corporate.title) + '</h3><p>' + esc(g.corporate.text) + '</p></div>' + ctas(g.corporate.ctas, true) + '</div></div>';
   }
 
@@ -325,10 +438,12 @@
   function openDetail(key) {
     var parts = key.split(':'), list = parts[0] === 'gift' ? D.gifts.items : D.takeaway.items;
     var it = list.filter(function (x) { return x.id === parts[1]; })[0]; if (!it) return;
-    $('[data-dlg-body]').innerHTML = photo(it.image, it.imageAlt || it.name, it.imageStatus, false, it.seal || it.venue.charAt(0)) +
+    $('[data-dlg-body]').innerHTML = photo(it.image, it.imageAlt || it.name, it.imageStatus, false) +
       '<p class="tag">' + esc(it.venue + (it.tag ? '　' + it.tag : '')) + '</p><h3 id="dlg-title">' + esc(it.name) + '</h3>' +
       '<p class="card__meta">' + esc(it.serve || it.spec || '') + '</p><p>' + esc(it.desc) + '</p>' +
-      (it.status === 'onsale' ? '<p class="card__price" style="margin-top:10px">NT$' + nt(it.price) + '</p>' : '<p class="dlg__fine">2027 內容、售價與訂購方式公布後於本頁更新；目前可來電洽詢。</p>') +
+      (it.periods ? '<dl class="dlg__periods">' + it.periods.map(function (p) { return '<div><dt>' + esc(p.label) + '</dt><dd>' + esc(p.value) + '</dd></div>'; }).join('') + '</dl>' : '') +
+      (it.menu ? '<ol class="dlg__menu">' + it.menu.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ol>' : '') +
+      (it.status === 'onsale' ? '<p class="card__price" style="margin-top:10px">NT$' + nt(it.price) + (it.originalPrice ? '<s>原價 ' + nt(it.originalPrice) + '</s>' : '') + '</p>' + (it.priceNote ? '<p class="card__meta">' + esc(it.priceNote) + '</p>' : '') + (it.notes ? '<p class="dlg__fine">' + esc(it.notes) + '</p>' : '') : '<p class="dlg__fine">2027 內容、售價與訂購方式公布後於本頁更新；目前可來電洽詢。</p>') +
       ctas(it.ctas, false, it.status === 'soldout') + (it.source ? '<p class="dlg__fine">資料來源：' + esc(it.source) + '</p>' : '');
     $('#dlg').showModal();
   }
@@ -363,7 +478,7 @@
 
   /* ---------- HERO 捲動敘事（Apple 式） ---------- */
   function heroMotion() {
-    var hero = $('[data-hero]'), frame = $('[data-frame]'), heroImg = $('[data-hero-img]'), scenes = $$('[data-scene]'), dots = $$('[data-dots] li');
+    var hero = $('[data-hero]'), frame = $('[data-frame]'), heroImg = $('[data-track]'), scenes = $$('[data-scene]'), dots = $$('[data-dots] li');
     var dock = $('.dock');
     var mobile = function () { return innerWidth < 768; };
     var ticking = false, cur = -2;
@@ -373,9 +488,9 @@
       var span = Math.max(1, r.height - innerHeight);
       var p = clamp(-r.top / span, 0, 1);
       var s = hero.style;
-      s.setProperty('--p', p.toFixed(4)); heroP = p;
+      s.setProperty('--p', p.toFixed(4));
       if (!REDUCED) {
-        var t = ss(0, .42, p), mb = mobile();
+        var mb = mobile(), t = mb ? ss(0, .75, p) : ss(0, .42, p);
         var ct = lerp(mb ? 52 : 50, 0, t), cx = lerp(mb ? 9 : 31, 0, t), cb = lerp(mb ? 11 : 7, 0, t), cr = lerp(mb ? 170 : 320, 0, t);
         frame.style.setProperty('--ct', ct + '%'); frame.style.setProperty('--cx', cx + '%'); frame.style.setProperty('--cb', cb + '%'); frame.style.setProperty('--cr', cr + 'px');
         // 起始時讓整張料理照收進拱形視窗，之後放大為滿版
@@ -387,17 +502,18 @@
         var dy = H * (ct - cb) / 200;
         heroImg.style.width = rw + 'px'; heroImg.style.height = rh + 'px';
         heroImg.style.transform = 'translate(-50%,-50%) translate3d(0,' + dy.toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
-        s.setProperty('--intro', (1 - ss(.16, .36, p)).toFixed(3));
-        s.setProperty('--shade', ss(.3, .5, p).toFixed(3));
-        var idx = p < .46 ? -1 : Math.min(scenes.length - 1, Math.floor((p - .46) / .54 * scenes.length));
+        s.setProperty('--intro', (1 - (mb ? ss(.2, .55, p) : ss(.16, .36, p))).toFixed(3));
+        s.setProperty('--shade', (mb ? ss(.55, 1, p) * .6 : ss(.3, .5, p)).toFixed(3));
+        var idx = (mb || p < .46) ? -1 : Math.min(scenes.length - 1, Math.floor((p - .46) / .54 * scenes.length));
         if (idx !== cur) {
           cur = idx;
           scenes.forEach(function (el, i) { el.classList.toggle('is-on', i === idx); var a = $('a', el); if (a) a.tabIndex = i === idx ? 0 : -1; });
           dots.forEach(function (el, i) { el.classList.toggle('is-on', i === idx); });
         }
       }
-      if (dock) dock.classList.toggle('is-on', scrollY > innerHeight * .5);
-      dust.active = r.bottom > 0;
+      // 手機快捷列在首屏結束後才出現，避免遮住輪播控制
+      if (dock) dock.classList.toggle('is-on', r.bottom < innerHeight * .6);
+      if (slideshow.reschedule) slideshow.reschedule(p < .06);
     }
     function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(frameStep); } }
     addEventListener('scroll', onScroll, { passive: true });
@@ -405,51 +521,84 @@
     frameStep();
   }
 
-  /* ---------- 金箔微粒 ---------- */
-  var dust = { active: true };
-  var heroP = 0;
-  function goldDust() {
-    var cv = $('[data-dust]'); if (!cv || REDUCED) return;
-    var ctx = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1), W, H, P = [];
-    function size() {
-      W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = W < 768 ? 14 : 28; P = [];
-      for (var i = 0; i < n; i++) P.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + .3, v: Math.random() * .16 + .05, a: Math.random() * Math.PI * 2, s: Math.random() * .02 + .006, d: (Math.random() - .5) * .2 });
-    }
-    size(); addEventListener('resize', size);
-    function loop() {
-      requestAnimationFrame(loop);
-      if (!dust.active || document.hidden) return;
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < P.length; i++) {
-        var q = P[i]; q.y -= q.v; q.x += q.d + Math.sin(q.a) * .15; q.a += q.s;
-        if (q.y < -10) { q.y = H + 10; q.x = Math.random() * W; }
-        var al = ((Math.sin(q.a * 2) + 1) / 2 * .45 + .08) * (1 - heroP * .8);
-        var g = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, q.r * 4);
-        g.addColorStop(0, 'rgba(250,228,186,' + al + ')'); g.addColorStop(1, 'rgba(201,162,107,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, q.r * 4, 0, 6.283); ctx.fill();
-      }
-    }
-    loop();
-  }
-
   /* ---------- 輪播按鈕 ---------- */
+  // 自動輪播：每 4 秒前進一張，到底回到第一張；觸碰、滑鼠停留、鍵盤聚焦、離開畫面或分頁隱藏時暫停
   function rails() {
     $$('[data-rail-ctrl]').forEach(function (ctrl) {
-      var rail = $('[data-rail="' + ctrl.dataset.railCtrl + '"]');
+      var rail = $('[data-rail="' + ctrl.dataset.railCtrl + '"]'); if (!rail) return;
+      var pauseBtn = $('[data-rail-pause]', ctrl);
+      var st = { user: false, hover: false, focus: false, seen: false, idle: 0, timer: 0 };
+      function step() { var c = rail.firstElementChild; return c ? c.getBoundingClientRect().width + parseFloat(getComputedStyle(rail).columnGap || 14) : 300; }
+      function go(dir) {
+        var max = rail.scrollWidth - rail.clientWidth;
+        if (dir > 0 && rail.scrollLeft >= max - 4) rail.scrollTo({ left: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+        else rail.scrollBy({ left: step() * dir, behavior: REDUCED ? 'auto' : 'smooth' });
+      }
+      // 回傳暫停原因（空字串表示可自動前進），寫入 data-autoplay 方便測試檢查
+      function reason() {
+        if (REDUCED) return 'reduced-motion'; if (st.user) return 'user'; if (st.hover) return 'hover'; if (st.focus) return 'focus';
+        if (!st.seen) return 'offscreen'; if (document.hidden) return 'hidden'; if (Date.now() < st.idle) return 'interaction';
+        if (rail.scrollWidth <= rail.clientWidth + 4) return 'no-overflow'; return '';
+      }
+      function tick() { clearTimeout(st.timer); st.timer = setTimeout(function () { var why = reason(); rail.dataset.autoplay = why || 'running'; if (!why) go(1); tick(); }, 4000); }
+      function hold() { st.idle = Date.now() + 12000; }
+      function stopByUser() {
+        st.user = true;
+        if (pauseBtn) { pauseBtn.setAttribute('aria-pressed', 'true'); pauseBtn.setAttribute('aria-label', '繼續自動輪播'); }
+      }
       ctrl.addEventListener('click', function (e) {
-        var b = e.target.closest('[data-dir]'); if (!b || !rail) return;
-        var card = rail.firstElementChild; var step = card ? card.getBoundingClientRect().width + 14 : 300;
-        rail.scrollBy({ left: step * Number(b.dataset.dir), behavior: REDUCED ? 'auto' : 'smooth' });
+        var b = e.target.closest('[data-dir]'); if (b) { stopByUser(); go(Number(b.dataset.dir)); }
       });
+      if (pauseBtn) {
+        if (REDUCED) pauseBtn.hidden = true;
+        pauseBtn.addEventListener('click', function () {
+          st.user = !st.user;
+          pauseBtn.setAttribute('aria-pressed', String(st.user));
+          pauseBtn.setAttribute('aria-label', st.user ? '繼續自動輪播' : '暫停自動輪播');
+        });
+      }
+      rail.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') st.hover = true; });
+      rail.addEventListener('pointerleave', function () { st.hover = false; });
+      rail.addEventListener('pointerdown', stopByUser);
+      rail.addEventListener('wheel', function (e) { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) stopByUser(); }, { passive: true });
+      rail.addEventListener('touchstart', stopByUser, { passive: true });
+      rail.addEventListener('focusin', function () { st.focus = true; });
+      rail.addEventListener('focusout', function () { st.focus = false; });
+      if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { st.seen = es[0].isIntersecting; }, { threshold: .4 }).observe(rail);
+      else st.seen = true;
+      // 篩選切換時回到第一張
+      rail.addEventListener('rail:reset', function () { rail.scrollLeft = 0; hold(); });
+      tick();
     });
+  }
+
+  /* ---------- 頁內跳轉：平滑捲動＋到位保險 ---------- */
+  function goTo(el, hash) {
+    if (!el) return;
+    if (hash && location.hash !== hash) history.pushState(null, '', hash);
+    el.scrollIntoView({ behavior: REDUCED ? 'instant' : 'smooth', block: 'start' });
+    setTimeout(function () {
+      var m = parseFloat(getComputedStyle(el).scrollMarginTop) || parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      // 'auto' 會沿用 CSS 的 smooth，這裡要用 'instant' 才能確保定位
+      if (Math.abs(el.getBoundingClientRect().top - m) > 48) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, 1000);
   }
 
   /* ---------- 全域事件 ---------- */
   function globalEvents() {
     document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href^="#"]');
+      if (link && !e.defaultPrevented && !link.hasAttribute('data-preset') && link.getAttribute('href').length > 1) {
+        var tgt = document.getElementById(link.getAttribute('href').slice(1));
+        if (tgt) { e.preventDefault(); goTo(tgt, link.getAttribute('href')); }
+      }
       var pre = e.target.closest('[data-preset]');
-      if (pre && renderDining.set) { try { renderDining.set(JSON.parse(pre.dataset.preset)); } catch (err) { /* ignore */ } }
+      if (pre && renderDining.set) {
+        try { renderDining.set(JSON.parse(pre.dataset.preset)); } catch (err) { /* ignore */ }
+        var fd = document.getElementById('finder');
+        // 帶入日期的連結直接跳到十二廚價目表
+        if (fd && pre.getAttribute('href') === '#dining') { e.preventDefault(); goTo(fd, '#finder'); }
+      }
       var det = e.target.closest('[data-detail]');
       if (det) { lastTrigger = det; openDetail(det.dataset.detail); }
       if (e.target.closest('[data-close]')) $('#dlg').close();
@@ -484,7 +633,7 @@
   load().then(function (data) {
     D = data;
     applyBrand(); renderNav(); renderHero(); renderPaths(); renderTakeaway(); renderDining(); renderBanquet(); renderEvents(); renderGifts(); renderFaq(); renderFooter();
-    observeReveal(document); navSpy(); heroMotion(); goldDust(); rails(); globalEvents(); reviewPanel();
+    observeReveal(document); navSpy(); startSlideshow(); heroMotion(); rails(); globalEvents(); reviewPanel();
     if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }).catch(function (err) {
     $('main').innerHTML = '<div class="load-error"><p>內容載入失敗（' + esc(err.message) + '）。請以本機伺服器開啟本頁，或來電 02-2321-5511 洽詢。</p></div>';

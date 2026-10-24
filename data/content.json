@@ -10,79 +10,82 @@
     "description": "台北喜來登大飯店 2027 丁未羊年新春：外帶年菜、餐廳除夕及春節餐價、宴會廳圍爐、新春館內活動與伴手禮。"
   },
   "brand": {
-    "note": "Digital Black、White、Champagne 取自 Sheraton Digital Guidelines（2019）；深緋紅、朱砂紅、暖象牙、金箔為 2027 活動提案色，待品牌核准。前台只讀取本區色彩，後台只能從 approvedPalette 選色。",
+    "note": "全站只用以下 8 色（含其透明度變化）。Digital Black、White、Champagne、Warm Gray 取自 Sheraton Digital Guidelines；新春紅、深酒紅參考萬豪旅享家「萬式過年」主視覺取樣（大面積中國紅＋暗部酒紅、以光影而非花紋做層次）；暖象牙、金線為活動提案色。前台 CSS 只能使用本色盤，建置時由 scripts/check_dist.py 檢查。",
     "approvedPalette": [
       {
         "name": "Digital Black",
         "hex": "#1C1C1C",
+        "role": "標題與內文",
         "source": "Sheraton Digital Guidelines"
       },
       {
         "name": "White",
         "hex": "#FFFFFF",
-        "source": "Sheraton Digital Guidelines"
-      },
-      {
-        "name": "Champagne",
-        "hex": "#F7D6B4",
+        "role": "淺色底、深色底文字",
         "source": "Sheraton Digital Guidelines"
       },
       {
         "name": "Warm Gray",
         "hex": "#6F625D",
+        "role": "次要文字、註記",
         "source": "Sheraton Digital Guidelines"
       },
       {
-        "name": "Linen",
-        "hex": "#EFEAE4",
+        "name": "Champagne",
+        "hex": "#F7D6B4",
+        "role": "主要按鈕、選取狀態、首屏主標",
         "source": "Sheraton Digital Guidelines"
-      },
-      {
-        "name": "深緋紅",
-        "hex": "#451B1D",
-        "source": "2027 活動提案色（待核准）"
-      },
-      {
-        "name": "夜緋紅",
-        "hex": "#220C0E",
-        "source": "2027 活動提案色（待核准）"
-      },
-      {
-        "name": "朱砂紅",
-        "hex": "#A52A25",
-        "source": "2027 活動提案色（待核准）"
       },
       {
         "name": "暖象牙",
         "hex": "#F5EFE6",
+        "role": "交替的淺色區塊底",
         "source": "2027 活動提案色（待核准）"
       },
       {
-        "name": "金箔",
+        "name": "金線",
         "hex": "#C9A26B",
-        "source": "2027 活動提案色（待核准，僅作裝飾與按鈕材質）"
+        "role": "1px 細線與外框，只做線不做面",
+        "source": "2027 活動提案色（待核准）"
+      },
+      {
+        "name": "新春紅",
+        "hex": "#A01C1F",
+        "role": "首屏、館內活動大面積平塗；售完等狀態",
+        "source": "參考萬式過年主視覺取樣（待核准）"
+      },
+      {
+        "name": "深酒紅",
+        "hex": "#4A0E10",
+        "role": "暗角、頁首、頁尾",
+        "source": "參考萬式過年主視覺取樣（待核准）"
       }
     ],
     "tokens": {
       "ink": "#1C1C1C",
       "white": "#FFFFFF",
-      "champagne": "#F7D6B4",
       "muted": "#6F625D",
-      "linen": "#EFEAE4",
-      "crimson": "#451B1D",
-      "night": "#220C0E",
-      "red": "#A52A25",
+      "champagne": "#F7D6B4",
       "ivory": "#F5EFE6",
-      "gold": "#C9A26B"
+      "gold": "#C9A26B",
+      "red": "#A01C1F",
+      "wine": "#4A0E10"
     },
     "fonts": {
-      "serif": "Noto Serif TC",
-      "serifWeights": [
+      "heading": "Noto Sans TC",
+      "headingNote": "思源黑體，用於所有標題與內文",
+      "headingWeights": [
         300,
-        500
+        400,
+        500,
+        700
       ],
-      "serifLicense": "SIL Open Font License 1.1",
-      "sans": "系統黑體（PingFang TC／Microsoft JhengHei）"
+      "art": "LXGW WenKai TC",
+      "artNote": "霞鶩文楷 TC，只用於首屏主標藝術字",
+      "artWeights": [
+        400
+      ],
+      "license": "兩者皆為 SIL Open Font License 1.1，可商用；經 Google Fonts 載入，版本由服務端提供"
     },
     "logo": {
       "onDark": "assets/img/logo-white.png",
@@ -93,6 +96,23 @@
         "數位用途不顯示「EST 1937」（同上指南）。",
         "建議格式為 SVG；目前使用官網 PNG，待取得 MAL 正式檔案。",
         "標誌不得變形、改色、加效果或與其他圖形重組；周圍保留至少標誌 S 圓徽高度的安全空間（一般慣例，待品牌窗口確認）。"
+      ]
+    },
+    "colorPlan": {
+      "reference": "萬式過年：大面積平塗中國紅，聚光燈式暗角做層次；金米色書法標題；奶油白與黑點綴；不用花紋與材質。",
+      "proportion": {
+        "淺色底（白、暖象牙）": 0.55,
+        "文字（Digital Black、Warm Gray）": 0.12,
+        "新春紅": 0.14,
+        "深酒紅": 0.12,
+        "Champagne": 0.05,
+        "金線": 0.02
+      },
+      "rules": [
+        "深色大面積只出現在首屏、館內活動、頁首頁尾",
+        "按鈕依 Brand Book：主要＝Champagne 平塗＋黑字；次要＝黑色描邊；深色底改白色描邊",
+        "不使用漸層填色按鈕、拉絲、噪點與絲緞紋理",
+        "藝術字只用在首屏主標"
       ]
     }
   },
@@ -145,9 +165,67 @@
       "有席"
     ],
     "lead": "星級年菜外帶回家、除夕到初五餐廳留席、新春好禮與館內節慶活動，今年的團圓，交給喜來登安排。",
-    "image": "assets/img/guest.jpg",
-    "imageAlt": "一桌中式年菜：清蒸魚、佛跳牆、燒味與冷盤（往年年菜影像，示意）",
-    "imageStatus": "reference",
+    "slideshow": {
+      "autoplay": true,
+      "intervalSec": 6,
+      "randomStart": true
+    },
+    "slides": [
+      {
+        "id": "sl-guest",
+        "status": "confirmed",
+        "image": "assets/img/guest.jpg",
+        "imageAlt": "請客樓年菜：清蒸魚、佛跳牆、燒味與冷盤（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "請客樓",
+        "label": "米其林一星川揚料理"
+      },
+      {
+        "id": "sl-chinese",
+        "status": "confirmed",
+        "image": "assets/img/chinese.jpg",
+        "imageAlt": "辰園年菜：燒味、燉雞、蒸龍蝦與珍珠雞（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "辰園",
+        "label": "米其林入選粵菜"
+      },
+      {
+        "id": "sl-osechi",
+        "status": "confirmed",
+        "image": "assets/img/osechi.jpg",
+        "imageAlt": "桃山御節年菜三段重（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "桃山",
+        "label": "老字號日本料亭"
+      },
+      {
+        "id": "sl-thai",
+        "status": "confirmed",
+        "image": "assets/img/thai.jpg",
+        "imageAlt": "SUKHOTHAI 泰式年菜（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "SUKHOTHAI",
+        "label": "宮廷泰式料理"
+      },
+      {
+        "id": "sl-steak",
+        "status": "confirmed",
+        "image": "assets/img/steak.jpg",
+        "imageAlt": "安東廳帶骨肋眼牛排套餐（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "安東廳",
+        "label": "頂級牛排館"
+      },
+      {
+        "id": "sl-crab",
+        "status": "confirmed",
+        "image": "assets/img/crab.jpg",
+        "imageAlt": "比薩屋帝王蟹分享餐（往年影像，示意）",
+        "imageStatus": "reference",
+        "venue": "比薩屋",
+        "label": "拿坡里比薩職人認證"
+      }
+    ],
     "scenes": [
       {
         "kicker": "外帶年菜",
@@ -158,7 +236,7 @@
       {
         "kicker": "餐廳內用",
         "title": "除夕到初五，為你留席",
-        "text": "十二廚自助餐與大廳酒吧，選日期即可查餐價與訂位。",
+        "text": "十二廚國際自助餐，除夕與春節餐價一目了然。",
         "target": "dining"
       },
       {
@@ -178,8 +256,13 @@
         "id": "p-home",
         "status": "confirmed",
         "icon": "bag",
+        "order": "壹",
+        "image": "assets/img/chinese.jpg",
+        "imageAlt": "年菜一桌（往年影像，示意）",
+        "imageStatus": "reference",
         "need": "在家團圓",
         "title": "年菜帶回家",
+        "couplet": "年菜回家",
         "desc": "星級年菜宅配到府，免備料、免顧火。",
         "ctas": [
           {
@@ -193,9 +276,14 @@
         "id": "p-dine",
         "status": "confirmed",
         "icon": "calendar",
+        "order": "貳",
+        "image": "assets/img/shabu.jpg",
+        "imageAlt": "圍桌共享的火鍋料理（往年影像，示意）",
+        "imageStatus": "reference",
         "need": "除夕至初五",
         "title": "到飯店吃一頓",
-        "desc": "十二廚自助餐、大廳酒吧，選日期即查餐價與訂位。",
+        "couplet": "飯店團圓",
+        "desc": "十二廚國際自助餐，除夕與春節餐價一目了然。",
         "ctas": [
           {
             "type": "anchor",
@@ -208,8 +296,13 @@
         "id": "p-banquet",
         "status": "soldout",
         "icon": "table",
+        "order": "參",
+        "image": "assets/fake/event-voyage.svg",
+        "imageAlt": "宴會廳圍爐宴示意圖",
+        "imageStatus": "placeholder",
         "need": "除夕圍爐宴",
         "title": "宴會廳團圓桌席",
+        "couplet": "宴會圍爐",
         "desc": "幸福啟航圍爐宴已售完，推薦改訂十二廚除夕晚餐。",
         "ctas": [
           {
@@ -227,8 +320,13 @@
         "id": "p-gift",
         "status": "confirmed",
         "icon": "gift",
+        "order": "肆",
+        "image": "assets/img/cakes.jpg",
+        "imageAlt": "新春禮盒（往年影像，示意）",
+        "imageStatus": "reference",
         "need": "拜年送禮",
         "title": "送一份年禮",
+        "couplet": "新春送禮",
         "desc": "人氣伴手禮線上購買，企業採購專人服務。",
         "ctas": [
           {
@@ -297,7 +395,6 @@
       {
         "id": "tk-jiyang",
         "status": "onsale",
-        "featured": true,
         "category": "frozen",
         "venue": "宴會廳",
         "tag": "2027 搶先預購",
@@ -549,7 +646,210 @@
   },
   "dining": {
     "title": "餐廳內用",
-    "lead": "十二廚自助餐與大廳酒吧的除夕及春節（初一至初五）餐價。選擇日期與餐期，即可查看時段、價格與訂位方式。",
+    "lead": "除夕至初五，到飯店吃一頓團圓飯。先看各餐廳除夕菜單；十二廚自助餐的除夕與春節餐價，整理在下方價目表。",
+    "menus": {
+      "title": "各餐廳除夕菜單",
+      "lead": "館內各餐廳的除夕團圓餐一覽。十二廚可直接查看價目，其他餐廳 2027 除夕菜單公布後，連結將直接開啟菜單。",
+      "items": [
+        {
+          "id": "mn-k12",
+          "status": "confirmed",
+          "venue": "十二廚",
+          "label": "國際自助餐",
+          "image": "",
+          "imageAlt": "",
+          "imageStatus": "none",
+          "note": "除夕自助餐 NT$2,980 起",
+          "ctas": [
+            {
+              "type": "anchor",
+              "label": "看除夕餐價",
+              "target": "dining",
+              "preset": {
+                "date": "0205",
+                "meal": "dinner"
+              }
+            }
+          ]
+        },
+        {
+          "id": "mn-lounge",
+          "status": "hidden",
+          "venue": "大廳酒吧",
+          "label": "Lounge & Bar",
+          "image": "",
+          "imageAlt": "",
+          "imageStatus": "none",
+          "note": "除夕晚餐 NT$3,980",
+          "ctas": [
+            {
+              "type": "anchor",
+              "label": "看除夕餐價",
+              "target": "dining",
+              "preset": {
+                "date": "0205",
+                "meal": "dinner"
+              }
+            }
+          ]
+        },
+        {
+          "id": "mn-banquet",
+          "status": "soldout",
+          "venue": "宴會廳",
+          "label": "幸福啟航除夕圍爐宴",
+          "image": "assets/fake/event-voyage.svg",
+          "imageAlt": "宴會廳往年料理影像（示意）",
+          "imageStatus": "placeholder",
+          "note": "已售完",
+          "ctas": [
+            {
+              "type": "anchor",
+              "label": "查看菜單",
+              "target": "banquet"
+            }
+          ]
+        },
+        {
+          "id": "mn-guest",
+          "status": "coming",
+          "venue": "請客樓",
+          "label": "米其林一星川揚料理",
+          "image": "assets/img/guest.jpg",
+          "imageAlt": "請客樓往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=18"
+            }
+          ]
+        },
+        {
+          "id": "mn-chen",
+          "status": "coming",
+          "venue": "辰園",
+          "label": "米其林入選粵菜",
+          "image": "assets/img/chinese.jpg",
+          "imageAlt": "辰園往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=19"
+            }
+          ]
+        },
+        {
+          "id": "mn-momo",
+          "status": "coming",
+          "venue": "桃山",
+          "label": "日本料理",
+          "image": "assets/img/osechi.jpg",
+          "imageAlt": "桃山往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=21"
+            }
+          ]
+        },
+        {
+          "id": "mn-thai",
+          "status": "coming",
+          "venue": "SUKHOTHAI",
+          "label": "宮廷泰式料理",
+          "image": "assets/img/thai.jpg",
+          "imageAlt": "SUKHOTHAI往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=20"
+            }
+          ]
+        },
+        {
+          "id": "mn-antoine",
+          "status": "coming",
+          "venue": "安東廳",
+          "label": "頂級牛排館",
+          "image": "assets/img/steak.jpg",
+          "imageAlt": "安東廳往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=22"
+            }
+          ]
+        },
+        {
+          "id": "mn-pizza",
+          "status": "coming",
+          "venue": "比薩屋",
+          "label": "義式餐廳",
+          "image": "assets/img/crab.jpg",
+          "imageAlt": "比薩屋往年料理影像（示意）",
+          "imageStatus": "reference",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=23"
+            }
+          ]
+        },
+        {
+          "id": "mn-sushi",
+          "status": "coming",
+          "venue": "すし桃",
+          "label": "壽司 Omakase",
+          "image": "",
+          "imageAlt": "",
+          "imageStatus": "none",
+          "note": "除夕菜單公布中",
+          "ctas": [
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-sushi-momo/reserve/landing"
+            }
+          ]
+        },
+        {
+          "id": "mn-deli",
+          "status": "coming",
+          "venue": "The Deli",
+          "label": "外賣店",
+          "image": "",
+          "imageAlt": "",
+          "imageStatus": "none",
+          "note": "年節商品公布中",
+          "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=24"
+            }
+          ]
+        }
+      ],
+      "verify": "除十二廚（MEMO SFB-26-072）與宴會廳外，其他餐廳 2027 除夕菜單尚未取得，目前連到官網餐廳介紹；すし桃官網頁面網址未取得，暫連 TableCheck 訂位。"
+    },
+    "finderTitle": "十二廚 除夕・春節餐價",
     "restaurants": [
       {
         "id": "kitchen12",
@@ -684,7 +984,8 @@
         "note": "10:00–15:00 制式單點菜單（11:00 開始供餐，最後點餐 14:30）",
         "deposit": "訂金每位 NT$500",
         "extra": "當日樂團暫停演出",
-        "booking": "online"
+        "booking": "online",
+        "status": "hidden"
       },
       {
         "id": "lg-eve-dinner",
@@ -710,7 +1011,8 @@
         "booking": "phone",
         "bookingNote": "由十二廚統籌訂位",
         "bookingTel": "+886223215511",
-        "noDiscount": true
+        "noDiscount": true,
+        "status": "hidden"
       },
       {
         "id": "k12-cny1-lunch",
@@ -843,7 +1145,8 @@
         "meal": "lunch",
         "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）",
         "deposit": "4 位（含）以上訂金每位 NT$500",
-        "booking": "online"
+        "booking": "online",
+        "status": "hidden"
       },
       {
         "id": "lg-cny-tea",
@@ -859,7 +1162,8 @@
         "meal": "tea",
         "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）",
         "deposit": "4 位（含）以上訂金每位 NT$500",
-        "booking": "online"
+        "booking": "online",
+        "status": "hidden"
       },
       {
         "id": "lg-cny-dinner",
@@ -875,7 +1179,8 @@
         "meal": "dinner",
         "note": "10:00–00:00 制式單點菜單（11:00 開始供餐，最後點餐 23:30）",
         "deposit": "4 位（含）以上訂金每位 NT$500",
-        "booking": "online"
+        "booking": "online",
+        "status": "hidden"
       }
     ],
     "discounts": {
@@ -932,7 +1237,8 @@
       "verify": "MEMO SFB-26-072 包廂低消表未註明所屬餐廳，此處推定為十二廚包廂，請餐飲部確認。"
     },
     "source": "MEMO SFB-26-072（2026/08/18 簽核）；TableCheck 連結取自官網餐廳頁（2026/10/23）",
-    "verify": "MEMO 註明十二廚「僅提供電話訂位」，故春節期間十二廚 CTA 為電話；官網另有十二廚 TableCheck 連結，平日可用。"
+    "verify": "MEMO 註明十二廚「僅提供電話訂位」，故春節期間十二廚 CTA 為電話；官網另有十二廚 TableCheck 連結，平日可用。",
+    "showLounge": false
   },
   "banquet": {
     "status": "soldout",
@@ -1151,8 +1457,12 @@
     "verify": "除「幸福啟航除夕晚會」外，其餘活動皆為版面示意，需由公關／活動窗口提供正式內容。"
   },
   "gifts": {
+    "kicker": "新春好禮　拜年送禮",
     "title": "通路伴手禮",
-    "lead": "拜年送禮、企業致意，挑一份體面的心意。可線上購買、電話訂購，或至 1F The Deli 外賣店提貨。",
+    "tagline": "一盒好味道，捎去新年的祝福",
+    "couplet": "新春好禮",
+    "lead": "走春拜年、企業致意，挑一份體面的心意。可線上購買、電話訂購，或至 1F The Deli 外賣店提貨。",
+    "listTitle": "人氣禮盒",
     "channels": [
       {
         "id": "online",
@@ -1182,7 +1492,6 @@
         "pickup": "提貨 10/12–12/31，11:00–18:00，1F The Deli",
         "image": "",
         "imageStatus": "none",
-        "seal": "絮",
         "channels": [
           "online",
           "deli"
@@ -1235,7 +1544,6 @@
         "desc": "雙糕搭配辰園經典手工 XO 醬。",
         "image": "",
         "imageStatus": "none",
-        "seal": "陞",
         "channels": [
           "phone"
         ],
@@ -1258,7 +1566,6 @@
         "desc": "古法風乾的肝腸與臘腸。",
         "image": "",
         "imageStatus": "none",
-        "seal": "常",
         "channels": [
           "phone"
         ],
@@ -1281,7 +1588,6 @@
         "desc": "手工日曬與鹽漬，口感軟糯彈牙。",
         "image": "",
         "imageStatus": "none",
-        "seal": "烏",
         "channels": [
           "phone"
         ],
@@ -1314,11 +1620,11 @@
     "items": [
       {
         "q": "何時可以訂位？要怎麼訂？",
-        "a": "十二廚與大廳酒吧已於 2026 年 9 月 14 日開放除夕及春節預訂。十二廚除夕及春節僅受理電話訂位（02-2321-5511）；大廳酒吧春節期間可線上訂位，除夕晚餐由十二廚統籌訂位。"
+        "a": "十二廚已於 2026 年 9 月 14 日開放除夕及春節預訂，除夕及春節期間僅受理電話訂位（02-2321-5511）。"
       },
       {
         "q": "訂金怎麼收？",
-        "a": "除夕晚餐兩場次須預付全額；其他餐期以每位 NT$500 綁定訂金（大廳酒吧春節期間 4 位以上適用）。"
+        "a": "十二廚除夕晚餐兩場次須預付全額；其他餐期以每位 NT$500 綁定訂金。"
       },
       {
         "q": "除夕晚餐取消，可以退費嗎？",

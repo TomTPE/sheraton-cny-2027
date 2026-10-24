@@ -130,6 +130,10 @@ def validate_document(doc: Any) -> List[Dict[str, str]]:
     if not isinstance(doc, dict):
         return [{"path": "（根）", "message": "文件必須是 JSON 物件"}]
 
+    hero = doc.get("hero") if isinstance(doc.get("hero"), dict) else {}
+    if "effect" in hero and hero["effect"] != "arch":
+        err(["hero", "effect"], "首屏效果只提供 arch（拱形視窗）；紅綢揭幕版已依統一方案撤下")
+
     for k in REQUIRED_KEYS:
         if k not in doc:
             err([k], "缺少必要欄位「%s」" % k)
