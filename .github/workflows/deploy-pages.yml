@@ -1,6 +1,7 @@
 # 測試環境：推送到 main 時，建置前台並部署到 GitHub Pages。
 # 注意：GitHub Pages 網站預設對網際網路公開（僅 GitHub Enterprise Cloud 提供存取控制的私有 Pages）。
-# 各 action 版本為撰寫時（2026-10）所知的主要版本，啟用前請至 GitHub Marketplace 確認仍為維護中版本。
+# 各 action 以 commit SHA 固定版本（防止標籤被竄改），註解為對應正式版。
+# 2026-10-24 查證：以下版本皆以 Node.js 24 執行（Node.js 20 已停用）；升級時請一併更新 SHA 與註解。
 name: Deploy test site to GitHub Pages
 
 on:
@@ -22,15 +23,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: 驗證 content.json 格式
         run: python3 -c "import json; json.load(open('data/content.json', encoding='utf-8'))"
       - name: 建置（測試環境，強制 noindex、移除校稿欄位）
         run: python3 scripts/build.py --env test --out dist
       - name: 檢查建置產物（不含後台、無內部欄位、引用檔案皆存在）
         run: python3 scripts/check_dist.py dist
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0（內含 upload-artifact v7.0.0）
         with:
           path: dist
 
@@ -42,4 +45,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
