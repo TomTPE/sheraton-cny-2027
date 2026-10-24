@@ -44,8 +44,14 @@ REQUIRED_KEYS = [
 ]
 STATUS_VALUES = ["onsale", "coming", "soldout", "confirmed", "sample", "hidden"]
 IMAGE_STATUS_VALUES = ["official", "reference", "placeholder", "none"]
-IMAGE_KEYS = {"image", "onDark", "onLight"}
-TEL_KEYS = {"tel", "bookingTel"}
+IMAGE_KEYS = {"image", "onDark", "onLight", "ogImage", "heroImage"}
+TEL_KEYS = {"tel", "bookingTel", "directTel"}
+TRACK_RULES = {
+    "ga4": (r"^G-[A-Z0-9]{4,12}$", "GA4 評估 ID 格式為 G-XXXXXXXXXX"),
+    "gtm": (r"^GTM-[A-Z0-9]{4,10}$", "GTM 容器 ID 格式為 GTM-XXXXXXX"),
+    "googleAds": (r"^AW-\d{6,12}$", "Google Ads 轉換 ID 格式為 AW-123456789"),
+    "metaPixel": (r"^\d{10,20}$", "Meta Pixel ID 為 10–20 位數字"),
+}
 TEL_TYPES = {"phone", "inquiry"}
 URL_TYPES = {"booking", "buy", "link"}
 
@@ -277,6 +283,23 @@ def validate_document(doc: Any) -> List[Dict[str, str]]:
                 if bk.get("cnyPhoneOnly") is True and b != "phone":
                     err(["dining", "offers", i, "booking"],
                         "「%s」春節期間僅受理電話訂位，booking 必須為 phone" % (r.get("name") or r["id"]))
+    tr = doc.get("tracking")
+    if tr is not None:
+        if not isinstance(tr, dict):
+            err(["tracking"], "追蹤碼設定必須是物件")
+        else:
+            for k, (rx, msg) in TRACK_RULES.items():
+                v = tr.get(k)
+                if v not in (None, "") and (not isinstance(v, str) or not re.match(rx, v)):
+                    err(["tracking", k], msg + "；不使用請留空")
+    seo = doc.get("seo")
+    if isinstance(seo, dict):
+        u = seo.get("siteUrl")
+        if u and not re.match(r"^https://\S+/$", str(u)):
+            err(["seo", "siteUrl"], "正式網址必須以 https:// 開頭、以 / 結尾")
+        gv = seo.get("googleSiteVerification")
+        if gv and not re.match(r"^[A-Za-z0-9_-]{10,100}$", str(gv)):
+            err(["seo", "googleSiteVerification"], "驗證碼只能包含英數字、- 與 _")
     return errors
 
 

@@ -13,7 +13,8 @@ import re
 import sys
 from pathlib import Path
 
-DIST = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent / "dist")
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+DIST = Path(ARGS[0] if ARGS else Path(__file__).resolve().parent.parent / "dist")
 errors, notes = [], []
 
 
@@ -25,7 +26,14 @@ if not DIST.is_dir():
     sys.exit("找不到 %s，請先執行 scripts/build.py" % DIST)
 
 # 1. 不該出現的檔案
-for pat in ["admin", "server.py", "docs", "scripts", ".cms-tokens.json", "data/draft.json", "data/revisions", "data/audit.log", "README.md", ".github"]:
+ALLOW_ADMIN = "--allow-admin" in sys.argv
+if ALLOW_ADMIN:
+    cfg = (DIST / "admin" / "cms-config.js")
+    if not cfg.is_file() or '"backend": "github"' not in cfg.read_text(encoding="utf-8"):
+        err("雲端後台缺少 GitHub 後端設定 admin/cms-config.js")
+    if 'http-equiv="Content-Security-Policy"' not in (DIST / "admin" / "index.html").read_text(encoding="utf-8"):
+        err("雲端後台 index.html 缺少 Content-Security-Policy")
+for pat in (["admin"] if not ALLOW_ADMIN else []) + ["server.py", "docs", "scripts", ".cms-tokens.json", "data/draft.json", "data/revisions", "data/audit.log", "README.md", ".github"]:
     if (DIST / pat).exists():
         err("不應部署的檔案：" + pat)
 
@@ -42,7 +50,7 @@ if data["meta"].get("stage") != "published" and not data["meta"].get("noindex"):
 refs = set()
 html = (DIST / "index.html").read_text(encoding="utf-8")
 refs.update(re.findall(r'(?:src|href)="((?:assets|data)/[^"#?]+)"', html))
-for css in DIST.rglob("*.css"):
+for css in (DIST / "assets").rglob("*.css"):
     for u in re.findall(r'url\("?([^")]+)"?\)', css.read_text(encoding="utf-8")):
         if u.startswith("data:") or u.startswith("http"):
             continue
@@ -77,7 +85,7 @@ rgb_ok = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in palette}
 def expand(h):
     h = h.upper()
     return "#" + "".join(ch * 2 for ch in h[1:]) if len(h) == 4 else h
-color_files = list(DIST.rglob("*.css")) + list(DIST.rglob("*.svg"))
+color_files = list((DIST / "assets").rglob("*.css")) + list((DIST / "assets").rglob("*.svg"))  # 後台介面不受前台色票限制
 off = {}
 for f in color_files:
     txt = re.sub(r"/\*.*?\*/", "", f.read_text(encoding="utf-8"), flags=re.S)
@@ -91,7 +99,20 @@ for f, cs in off.items():
     err("色盤外的顏色 %s：%s" % (f, "、".join(sorted(cs))))
 notes.append("色票檢查：%d 個檔案，核准色盤 %d 色" % (len(color_files), len(palette)))
 
-# 5. 統計
+# 5. SEO：robots、sitemap、canonical 與結構化資料
+html_all = (DIST / "index.html").read_text(encoding="utf-8")
+if not (DIST / "robots.txt").is_file():
+    err("缺少 robots.txt")
+if data["meta"].get("noindex") and "noindex" not in html_all:
+    err("noindex 為 true，但 index.html 沒有 noindex")
+for ld in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html_all, flags=re.S):
+    try:
+        json.loads(ld)
+    except ValueError as e:
+        err("結構化資料 JSON 格式錯誤：%s" % e)
+notes.append("SEO：結構化資料 %d 段、canonical %s" % (len(re.findall(r'application/ld\+json', html_all)), "有" if 'rel="canonical"' in html_all else "無"))
+
+# 6. 統計
 ctas = sum(len(i.get("ctas", [])) for sec in ("takeaway", "gifts", "events") for i in data[sec]["items"])
 size = sum(p.stat().st_size for p in DIST.rglob("*") if p.is_file())
 notes.append("引用檔案 %d 個、商品與活動 CTA %d 個、總大小 %.1f MB" % (len(refs), ctas, size / 1e6))

@@ -21,6 +21,7 @@
     { id: 'gifts', label: '通路伴手禮', keys: ['gifts'] },
     { id: 'faq', label: '須知 FAQ', keys: ['faq'] },
     { id: 'footer', label: '頁尾', keys: ['footer'] },
+    { id: 'seo', label: 'SEO 與追蹤碼', keys: ['seo', 'tracking'] },
     { id: 'revisions', label: '版本紀錄', special: true },
     { id: 'audit', label: '操作紀錄', special: true, publisherOnly: true }
   ];
@@ -32,8 +33,8 @@
   const STATUS_VALUES = STATUS_OPTIONS.map(o => o[0]);
   const IMAGE_STATUS_OPTIONS = [['official', '正式'], ['reference', '參考'], ['placeholder', '示意'], ['none', '無']];
   const IMAGE_STATUS_VALUES = IMAGE_STATUS_OPTIONS.map(o => o[0]);
-  const IMAGE_KEYS = new Set(['image', 'onDark', 'onLight']);
-  const TEL_KEYS = new Set(['tel', 'bookingTel']);
+  const IMAGE_KEYS = new Set(['image', 'onDark', 'onLight', 'ogImage', 'heroImage']);
+  const TEL_KEYS = new Set(['tel', 'bookingTel', 'directTel']);
   const TEL_TYPES = new Set(['phone', 'inquiry']);
   const URL_TYPES = new Set(['booking', 'buy', 'link']);
   const CTA_FIELD = { phone: 'tel', inquiry: 'tel', booking: 'url', buy: 'url', link: 'url', anchor: 'target' };
@@ -50,6 +51,12 @@
     ['white', 'red', '白字／新春紅底'],
     ['champagne', 'wine', '香檳字／深酒紅底']
   ];
+  const TRACK_RULES = {
+    ga4: [/^G-[A-Z0-9]{4,12}$/, 'GA4 評估 ID 格式為 G-XXXXXXXXXX'],
+    gtm: [/^GTM-[A-Z0-9]{4,10}$/, 'GTM 容器 ID 格式為 GTM-XXXXXXX'],
+    googleAds: [/^AW-\d{6,12}$/, 'Google Ads 轉換 ID 格式為 AW-123456789'],
+    metaPixel: [/^\d{10,20}$/, 'Meta Pixel ID 為 10–20 位數字']
+  };
   const AUDIT_LABELS = { save_draft: '儲存草稿', publish: '發布', rollback: '還原至草稿', upload: '上傳圖片', auth_fail: '金鑰驗證失敗' };
   const ROLE_LABELS = { editor: '編輯者', publisher: '發布者' };
 
@@ -80,7 +87,12 @@
     company: '公司名稱', hotel: '飯店名稱', copyright: '版權聲明', trademark: '商標聲明', links: '連結',
     social: '社群', legal: '法律聲明', drinkWarning: '飲酒警語',
     ink: '墨色', white: '白', champagne: '香檳', muted: '次要文字',
-    red: '新春紅', wine: '深酒紅', ivory: '暖象牙', gold: '金線'
+    red: '新春紅', wine: '深酒紅', ivory: '暖象牙', gold: '金線',
+    seo: 'SEO', tracking: '追蹤碼', siteUrl: '正式網址（canonical）', ogImage: '社群分享圖（1200×630 以上）', ogImageAlt: '分享圖說明',
+    siteName: '網站名稱', locale: '語系', keywords: '關鍵字', structuredData: '輸出結構化資料（Schema.org）', googleSiteVerification: 'Google Search Console 驗證碼',
+    ga4: 'GA4 評估 ID（G-）', gtm: 'Google Tag Manager ID（GTM-）', googleAds: 'Google Ads 轉換 ID（AW-）', metaPixel: 'Meta Pixel ID',
+    cookieNotice: '顯示 Cookie 告知列', cookieText: 'Cookie 告知文字', nameEn: '英文名稱', floor: '樓層', directTel: '餐廳直撥（國際格式）',
+    directTelDisplay: '餐廳直撥顯示', bookingHub: '全部餐廳訂位入口', dining: '餐廳訂位專線', banquet: '宴會業務部', line: 'LINE 官方帳號', heroImage: '橫幅圖片'
   };
 
   // ------------------------------------------------------------------
@@ -209,6 +221,11 @@
   // ------------------------------------------------------------------
   async function api(method, path, opts) {
     opts = opts || {};
+    if (window.CMS_BACKEND) {
+      const r = await window.CMS_BACKEND.api(method, path, opts, S.token || '');
+      if (r.status === 401 && S.role) { S.role = null; toast('登入已失效，請重新輸入金鑰', 'error'); showLogin('登入已失效，請重新輸入金鑰'); }
+      return r;
+    }
     const headers = Object.assign({ 'X-Admin-Token': S.token || '' }, opts.headers || {});
     let body = opts.body;
     if (body !== undefined && !(body instanceof Blob)) {
@@ -366,6 +383,21 @@
           err(['dining', 'offers', i, 'booking'], '「' + (r.name || r.id) + '」春節期間僅受理電話訂位，booking 必須為 phone');
         }
       });
+    }
+    const tr = doc.tracking;
+    if (tr !== undefined) {
+      if (!isObj(tr)) err(['tracking'], '追蹤碼設定必須是物件');
+      else for (const k of Object.keys(TRACK_RULES)) {
+        const v = tr[k];
+        if (v !== undefined && v !== '' && (typeof v !== 'string' || !TRACK_RULES[k][0].test(v))) err(['tracking', k], TRACK_RULES[k][1] + '；不使用請留空');
+      }
+    }
+    const seo = doc.seo;
+    if (isObj(seo)) {
+      if (seo.siteUrl && !/^https:\/\/\S+\/$/.test(seo.siteUrl)) err(['seo', 'siteUrl'], '正式網址必須以 https:// 開頭、以 / 結尾');
+      if (typeof seo.description === 'string' && seo.description.length > 160) err(['seo', 'description'], '頁面描述建議 160 字以內（目前 ' + seo.description.length + ' 字）');
+      if (typeof seo.title === 'string' && seo.title.length > 60) err(['seo', 'title'], '標題建議 60 字以內');
+      if (seo.googleSiteVerification && !/^[A-Za-z0-9_-]{10,100}$/.test(seo.googleSiteVerification)) err(['seo', 'googleSiteVerification'], '驗證碼只能包含英數字、- 與 _');
     }
     return errors;
   }
@@ -1164,7 +1196,7 @@
     if (r.ok) {
       await loadPublished();
       updateSaveState();
-      toast('已發布 rev ' + r.data.revision);
+      toast('已發布 rev ' + r.data.revision + (r.data.note ? '。' + r.data.note : ''));
       if (S.module === 'revisions') renderModule();
       return;
     }
@@ -1246,6 +1278,10 @@
       if (isDirty()) { e.preventDefault(); e.returnValue = ''; }
     });
 
+    if (window.CMS_BACKEND && window.CMS_BACKEND.loginHelp) {
+      $('#login-help').textContent = window.CMS_BACKEND.loginHelp;
+      document.querySelector('label[for=login-token]').textContent = 'GitHub 存取金鑰';
+    }
     const saved = sessionStorage.getItem('cmsToken');
     if (saved) tryLogin(saved, true);
     else showLogin('');

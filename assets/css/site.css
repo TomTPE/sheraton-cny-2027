@@ -305,7 +305,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .menu-tile.is-sold img { filter: grayscale(.8) brightness(.6); }
 .menu-tile__go { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: var(--fs-1); color: var(--champagne); }
 .menu-tile__go .ico { width: 14px; }
-@media (max-width: 639px) { .menu-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 42%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 14px; scroll-padding-inline: var(--gutter); } .menu-grid::-webkit-scrollbar { display: none; } .menu-grid li { scroll-snap-align: start; } }
+/* 餐廳卡：圖卡下方直接線上訂位、撥打電話 */
+.venue { display: flex; flex-direction: column; gap: 8px; }
+.venue__acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
+.venue__act { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 0 6px; border: 1px solid var(--ink); border-radius: var(--r-s); font-size: var(--fs-1); font-weight: 500; color: var(--ink); text-decoration: none; white-space: nowrap; transition: background-color .25s, color .25s; }
+.venue__act:first-child { border-color: var(--champagne); background: var(--champagne); }
+.venue__act .ico { width: 15px; height: 15px; flex-shrink: 0; }
+.venue__act:hover { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.venue__direct { align-self: center; font-size: var(--fs-1); color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.venue.is-sold .venue__acts { display: none; }
+.text-link { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2); font-weight: 500; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; white-space: nowrap; }
+.text-link .ico { width: 16px; }
+@media (max-width: 639px) { .menu-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 64%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 14px; scroll-padding-inline: var(--gutter); } .menu-grid::-webkit-scrollbar { display: none; } .menu-grid li { scroll-snap-align: start; } }
 @media (min-width: 640px) { .menu-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
 @media (min-width: 1024px) { .menu-grid { grid-template-columns: repeat(4, 1fr); } .menu-tile { aspect-ratio: 3 / 4; } }
 
@@ -539,3 +550,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .review-panel.is-min ol { display: none; }
 @media (min-width: 768px) { .review-panel { left: auto; width: 420px; } }
 @media (min-width: 1024px) { .review-panel { bottom: 16px; } }
+
+/* Cookie 告知列 */
+.consent { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 60; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-m); background: var(--ink); color: var(--white); font-size: var(--fs-1); box-shadow: 0 8px 24px rgba(28, 28, 28, .25); }
+.consent p { flex: 1; }
+.consent a { color: var(--champagne); }
+.consent .btn { flex-shrink: 0; }
+@media (min-width: 1024px) { .consent { left: auto; right: 24px; bottom: 24px; max-width: 520px; } }

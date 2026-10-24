@@ -2,7 +2,7 @@
   "meta": {
     "siteVersion": "2.0.0",
     "revision": 1,
-    "updatedAt": "2026-10-23T18:00:00+08:00",
+    "updatedAt": "2026-10-24T16:00:00+08:00",
     "updatedBy": "system",
     "stage": "preview",
     "noindex": true,
@@ -130,7 +130,22 @@
       "display": "02-2321-1818"
     },
     "address": "100 台北市中正區忠孝東路一段 12 號",
-    "taxId": "70471881"
+    "taxId": "70471881",
+    "dining": {
+      "label": "餐廳訂位專線",
+      "tel": "+886223211818",
+      "display": "02-2321-1818"
+    },
+    "banquet": {
+      "label": "宴會業務部（冷凍年菜、企業採購）",
+      "tel": "+886223215511",
+      "display": "02-2321-5511"
+    },
+    "line": {
+      "label": "LINE 官方帳號",
+      "url": "https://line.me/R/ti/p/%40239juuly"
+    },
+    "source": "官網頁尾、餐廳頁、年節專區（2026/10/24 讀取）"
   },
   "nav": [
     {
@@ -172,58 +187,64 @@
     },
     "slides": [
       {
+        "id": "sl-k12",
+        "status": "confirmed",
+        "image": "assets/img/official/k12.jpg",
+        "imageAlt": "十二廚自助餐檯精選料理（官網形象照）",
+        "imageStatus": "official",
+        "venue": "十二廚",
+        "label": "國際自助餐",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
         "id": "sl-guest",
         "status": "confirmed",
-        "image": "assets/img/guest.jpg",
-        "imageAlt": "請客樓年菜：清蒸魚、佛跳牆、燒味與冷盤（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/guest.jpg",
+        "imageAlt": "請客樓招牌菜（官網形象照）",
+        "imageStatus": "official",
         "venue": "請客樓",
-        "label": "米其林一星川揚料理"
+        "label": "米其林一星川揚料理",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
       },
       {
-        "id": "sl-chinese",
+        "id": "sl-chen",
         "status": "confirmed",
-        "image": "assets/img/chinese.jpg",
-        "imageAlt": "辰園年菜：燒味、燉雞、蒸龍蝦與珍珠雞（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/chen.jpg",
+        "imageAlt": "辰園燒味（官網形象照）",
+        "imageStatus": "official",
         "venue": "辰園",
-        "label": "米其林入選粵菜"
+        "label": "粵菜・港式點心",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
       },
       {
-        "id": "sl-osechi",
+        "id": "sl-momo",
         "status": "confirmed",
-        "image": "assets/img/osechi.jpg",
-        "imageAlt": "桃山御節年菜三段重（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/momo.jpg",
+        "imageAlt": "桃山會席料理（官網形象照）",
+        "imageStatus": "official",
         "venue": "桃山",
-        "label": "老字號日本料亭"
+        "label": "日本料理",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "sl-antoine",
+        "status": "confirmed",
+        "image": "assets/img/official/antoine.jpg",
+        "imageAlt": "安東廳牛排（官網形象照）",
+        "imageStatus": "official",
+        "venue": "安東廳",
+        "label": "頂級牛排館",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
       },
       {
         "id": "sl-thai",
         "status": "confirmed",
-        "image": "assets/img/thai.jpg",
-        "imageAlt": "SUKHOTHAI 泰式年菜（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/thai.jpg",
+        "imageAlt": "SUKHOTHAI 泰式料理（官網形象照）",
+        "imageStatus": "official",
         "venue": "SUKHOTHAI",
-        "label": "宮廷泰式料理"
-      },
-      {
-        "id": "sl-steak",
-        "status": "confirmed",
-        "image": "assets/img/steak.jpg",
-        "imageAlt": "安東廳帶骨肋眼牛排套餐（往年影像，示意）",
-        "imageStatus": "reference",
-        "venue": "安東廳",
-        "label": "頂級牛排館"
-      },
-      {
-        "id": "sl-crab",
-        "status": "confirmed",
-        "image": "assets/img/crab.jpg",
-        "imageAlt": "比薩屋帝王蟹分享餐（往年影像，示意）",
-        "imageStatus": "reference",
-        "venue": "比薩屋",
-        "label": "拿坡里比薩職人認證"
+        "label": "宮廷泰式料理",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
       }
     ],
     "scenes": [
@@ -257,9 +278,9 @@
         "status": "confirmed",
         "icon": "bag",
         "order": "壹",
-        "image": "assets/img/chinese.jpg",
-        "imageAlt": "年菜一桌（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/jiyang.jpg",
+        "imageAlt": "吉羊納福冷凍年菜組（官網照片）",
+        "imageStatus": "official",
         "need": "在家團圓",
         "title": "年菜帶回家",
         "couplet": "年菜回家",
@@ -277,9 +298,9 @@
         "status": "confirmed",
         "icon": "calendar",
         "order": "貳",
-        "image": "assets/img/shabu.jpg",
-        "imageAlt": "圍桌共享的火鍋料理（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/k12.jpg",
+        "imageAlt": "十二廚自助餐（官網照片）",
+        "imageStatus": "official",
         "need": "除夕至初五",
         "title": "到飯店吃一頓",
         "couplet": "飯店團圓",
@@ -297,9 +318,9 @@
         "status": "soldout",
         "icon": "table",
         "order": "參",
-        "image": "assets/fake/event-voyage.svg",
-        "imageAlt": "宴會廳圍爐宴示意圖",
-        "imageStatus": "placeholder",
+        "image": "assets/img/official/chen.jpg",
+        "imageAlt": "中式宴席料理（官網照片）",
+        "imageStatus": "official",
         "need": "除夕圍爐宴",
         "title": "宴會廳團圓桌席",
         "couplet": "宴會圍爐",
@@ -321,9 +342,9 @@
         "status": "confirmed",
         "icon": "gift",
         "order": "肆",
-        "image": "assets/img/cakes.jpg",
-        "imageAlt": "新春禮盒（往年影像，示意）",
-        "imageStatus": "reference",
+        "image": "assets/img/official/gifts.jpg",
+        "imageAlt": "台北喜來登伴手禮（官網照片）",
+        "imageStatus": "official",
         "need": "拜年送禮",
         "title": "送一份年禮",
         "couplet": "新春送禮",
@@ -424,14 +445,14 @@
           "獨家贈送：琥珀鳳梨起司蛋糕"
         ],
         "notes": "年節商品皆為手工製作，數量有限，售完為止。不得與其他優惠併用及累積萬豪旅享家。",
-        "image": "assets/img/chinese.jpg",
-        "imageStatus": "placeholder",
-        "imageAlt": "中式年菜示意圖",
+        "image": "assets/img/official/jiyang.jpg",
+        "imageStatus": "official",
+        "imageAlt": "吉羊納福冷凍年菜組（官網照片）",
         "officialImage": "https://www.sheratongrandtaipei.com/files/pages_179007736715did3289_l.jpg",
         "ctas": [
           {
             "type": "phone",
-            "label": "電話訂購",
+            "label": "電話訂購（宴會業務部）",
             "tel": "+886223215511",
             "note": "02-2321-5511 轉宴會業務部"
           },
@@ -441,7 +462,7 @@
             "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&id=859"
           }
         ],
-        "source": "台北喜來登官網年節專區（2026/10/23 讀取）",
+        "source": "官網年節專區「吉羊納福．2027宴會廳冷凍年菜搶先預購」（2026/10/24 讀取）",
         "verify": "官網宅配時間寫「2027/2/1-2026/2/4」，依前後文應為 2027/02/01–02/04；正式圖片使用授權待確認。"
       },
       {
@@ -453,9 +474,9 @@
         "name": "極品御璽年菜套組",
         "serve": "六人份",
         "desc": "功夫小菜碟、御品佛跳牆、青椒汁時鮮魚、黑蒜無骨牛、干貝麻油雞煨飯與紅豆藜麥鬆糕。",
-        "image": "assets/img/guest.jpg",
+        "image": "assets/img/official/guest.jpg",
         "imageStatus": "reference",
-        "imageAlt": "請客樓年菜套組往年影像",
+        "imageAlt": "請客樓餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -475,9 +496,9 @@
         "name": "祥雲瑞彩年菜套組",
         "serve": "六人份",
         "desc": "鴻運燒味拼、松茸菌瑤柱花膠燉土雞、蟲草醬皇蒸龍蝦、干貝蟹肉娃娃菜、極品鮑魚珍珠雞。",
-        "image": "assets/img/chinese.jpg",
+        "image": "assets/img/official/chen.jpg",
         "imageStatus": "reference",
-        "imageAlt": "辰園年菜套組往年影像",
+        "imageAlt": "辰園餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -497,9 +518,9 @@
         "name": "御節年菜三段重",
         "serve": "四至六人份",
         "desc": "三重木箱盛裝龍蝦、帝王蟹腳、鮑魚與烏魚子等吉祥年節佳餚。",
-        "image": "assets/img/osechi.jpg",
+        "image": "assets/img/official/momo.jpg",
         "imageStatus": "reference",
-        "imageAlt": "桃山御節年菜往年影像",
+        "imageAlt": "桃山餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -519,9 +540,9 @@
         "name": "豪華海陸涮涮鍋",
         "serve": "四人份",
         "desc": "A5 和牛肋眼與黑毛松阪豚，海鮮湯底搭配龍蝦、鮑魚與北海道干貝。",
-        "image": "assets/img/shabu.jpg",
+        "image": "assets/img/official/momo.jpg",
         "imageStatus": "reference",
-        "imageAlt": "桃山涮涮鍋往年影像",
+        "imageAlt": "桃山餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -541,9 +562,9 @@
         "name": "鴻運金喜年菜套組",
         "serve": "四人份",
         "desc": "金錢蝦餅、炭烤松阪豬、泰北海陸龍蝦湯、清蒸檸檬龍虎斑。",
-        "image": "assets/img/thai.jpg",
+        "image": "assets/img/official/thai.jpg",
         "imageStatus": "reference",
-        "imageAlt": "SUKHOTHAI 年菜往年影像",
+        "imageAlt": "SUKHOTHAI餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -563,9 +584,9 @@
         "name": "爐烤美國 Prime 帶骨肋眼牛排套餐",
         "serve": "二至四人份",
         "desc": "高溫爐烤封存肉汁，表層焦脆、肉質柔嫩。",
-        "image": "assets/img/steak.jpg",
+        "image": "assets/img/official/antoine.jpg",
         "imageStatus": "reference",
-        "imageAlt": "安東廳牛排套餐往年影像",
+        "imageAlt": "安東廳餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -585,9 +606,9 @@
         "name": "奢華帝王蟹分享餐",
         "serve": "四人份",
         "desc": "帝王蟹腿比薩、海鮮沙拉、蟹餃番茄海鮮湯與海膽燉飯。",
-        "image": "assets/img/crab.jpg",
+        "image": "assets/img/official/pizza.jpg",
         "imageStatus": "reference",
-        "imageAlt": "比薩屋帝王蟹分享餐往年影像",
+        "imageAlt": "比薩屋餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -607,9 +628,9 @@
         "name": "花膠白鯧米粉湯",
         "serve": "八人份",
         "desc": "費工慢熬的溫醇湯頭，花膠、香酥白鯧魚、花菇與芋頭。",
-        "image": "",
-        "imageStatus": "none",
-        "imageAlt": "",
+        "image": "assets/img/official/guest.jpg",
+        "imageStatus": "reference",
+        "imageAlt": "請客樓餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -629,9 +650,9 @@
         "name": "廣式鴻運燒味拼",
         "serve": "六人份",
         "desc": "明爐烤鴨、煙燻茶鵝、溏心烏魚子、蜜汁叉燒與玫瑰油雞。",
-        "image": "",
-        "imageStatus": "none",
-        "imageAlt": "",
+        "image": "assets/img/official/chen.jpg",
+        "imageStatus": "reference",
+        "imageAlt": "辰園餐廳料理（官網形象照，非年菜實品）",
         "ctas": [
           {
             "type": "inquiry",
@@ -649,16 +670,16 @@
     "lead": "除夕至初五，到飯店吃一頓團圓飯。先看各餐廳除夕菜單；十二廚自助餐的除夕與春節餐價，整理在下方價目表。",
     "menus": {
       "title": "各餐廳除夕菜單",
-      "lead": "館內各餐廳的除夕團圓餐一覽。十二廚可直接查看價目，其他餐廳 2027 除夕菜單公布後，連結將直接開啟菜單。",
+      "lead": "點選餐廳看介紹，或直接線上訂位、撥打訂位專線 02-2321-1818。",
       "items": [
         {
           "id": "mn-k12",
           "status": "confirmed",
           "venue": "十二廚",
           "label": "國際自助餐",
-          "image": "",
-          "imageAlt": "",
-          "imageStatus": "none",
+          "image": "assets/img/official/k12.jpg",
+          "imageAlt": "十二廚料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕自助餐 NT$2,980 起",
           "ctas": [
             {
@@ -669,17 +690,23 @@
                 "date": "0205",
                 "meal": "dinner"
               }
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "kitchen12"
         },
         {
           "id": "mn-lounge",
           "status": "hidden",
           "venue": "大廳酒吧",
           "label": "Lounge & Bar",
-          "image": "",
-          "imageAlt": "",
-          "imageStatus": "none",
+          "image": "assets/img/official/lounge.jpg",
+          "imageAlt": "大廳酒吧料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕晚餐 NT$3,980",
           "ctas": [
             {
@@ -690,8 +717,19 @@
                 "date": "0205",
                 "meal": "dinner"
               }
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-lounge/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "lounge"
         },
         {
           "id": "mn-banquet",
@@ -715,136 +753,224 @@
           "status": "coming",
           "venue": "請客樓",
           "label": "米其林一星川揚料理",
-          "image": "assets/img/guest.jpg",
-          "imageAlt": "請客樓往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/guest.jpg",
+          "imageAlt": "請客樓料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=18"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-guest-house/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "guest"
         },
         {
           "id": "mn-chen",
           "status": "coming",
           "venue": "辰園",
           "label": "米其林入選粵菜",
-          "image": "assets/img/chinese.jpg",
-          "imageAlt": "辰園往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/chen.jpg",
+          "imageAlt": "辰園料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=19"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-dragon/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "chen"
         },
         {
           "id": "mn-momo",
           "status": "coming",
           "venue": "桃山",
           "label": "日本料理",
-          "image": "assets/img/osechi.jpg",
-          "imageAlt": "桃山往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/momo.jpg",
+          "imageAlt": "桃山料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=21"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-momoyama/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "momo"
         },
         {
           "id": "mn-thai",
           "status": "coming",
           "venue": "SUKHOTHAI",
           "label": "宮廷泰式料理",
-          "image": "assets/img/thai.jpg",
-          "imageAlt": "SUKHOTHAI往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/thai.jpg",
+          "imageAlt": "SUKHOTHAI料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=20"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-sukhothai/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "thai"
         },
         {
           "id": "mn-antoine",
           "status": "coming",
           "venue": "安東廳",
           "label": "頂級牛排館",
-          "image": "assets/img/steak.jpg",
-          "imageAlt": "安東廳往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/antoine.jpg",
+          "imageAlt": "安東廳料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=22"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-antoine-room/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "antoine"
         },
         {
           "id": "mn-pizza",
           "status": "coming",
           "venue": "比薩屋",
           "label": "義式餐廳",
-          "image": "assets/img/crab.jpg",
-          "imageAlt": "比薩屋往年料理影像（示意）",
-          "imageStatus": "reference",
+          "image": "assets/img/official/pizza.jpg",
+          "imageAlt": "比薩屋料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=23"
+            },
+            {
+              "type": "booking",
+              "label": "線上訂位",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-pizza-pub/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "pizza"
         },
         {
           "id": "mn-sushi",
           "status": "coming",
           "venue": "すし桃",
           "label": "壽司 Omakase",
-          "image": "",
-          "imageAlt": "",
-          "imageStatus": "none",
+          "image": "assets/img/official/sushi.jpg",
+          "imageAlt": "すし桃料理（官網形象照）",
+          "imageStatus": "official",
           "note": "除夕菜單公布中",
           "ctas": [
+            {
+              "type": "link",
+              "label": "餐廳介紹",
+              "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=522"
+            },
             {
               "type": "booking",
               "label": "線上訂位",
               "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-sushi-momo/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話訂位",
+              "tel": "+886223211818"
             }
-          ]
+          ],
+          "restaurant": "sushi"
         },
         {
           "id": "mn-deli",
           "status": "coming",
           "venue": "The Deli",
           "label": "外賣店",
-          "image": "",
-          "imageAlt": "",
-          "imageStatus": "none",
+          "image": "assets/img/official/deli.jpg",
+          "imageAlt": "The Deli料理（官網形象照）",
+          "imageStatus": "official",
           "note": "年節商品公布中",
           "ctas": [
             {
               "type": "link",
               "label": "餐廳介紹",
               "url": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=24"
+            },
+            {
+              "type": "booking",
+              "label": "線上預購",
+              "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-deli/reserve/landing"
+            },
+            {
+              "type": "phone",
+              "label": "電話",
+              "tel": "+886266331373"
             }
-          ]
+          ],
+          "restaurant": "deli"
         }
       ],
       "verify": "除十二廚（MEMO SFB-26-072）與宴會廳外，其他餐廳 2027 除夕菜單尚未取得，目前連到官網餐廳介紹；すし桃官網頁面網址未取得，暫連 TableCheck 訂位。"
@@ -854,26 +980,175 @@
       {
         "id": "kitchen12",
         "name": "十二廚",
+        "nameEn": "Kitchen 12",
         "type": "國際自助餐",
+        "floor": "1F",
         "booking": {
           "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-kitchen-12/reserve/landing",
           "cnyPhoneOnly": true
         },
-        "tel": "+886223215511",
-        "telDisplay": "02-2321-5511",
-        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=15"
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=15",
+        "image": "assets/img/official/k12.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "guest",
+        "name": "請客樓",
+        "nameEn": "The Guest House",
+        "type": "米其林一星川揚料理",
+        "floor": "17F–18F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-guest-house/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=18",
+        "image": "assets/img/official/guest.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）",
+        "directTel": "+886266331652",
+        "directTelDisplay": "02-6633-1652",
+        "verify": "餐廳直撥電話取自 TableCheck 須知內文（非正式電話欄位），上線前請餐廳確認。"
+      },
+      {
+        "id": "chen",
+        "name": "辰園",
+        "nameEn": "The Dragon",
+        "type": "粵菜・港式點心",
+        "floor": "B1",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-dragon/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=19",
+        "image": "assets/img/official/chen.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）",
+        "directTel": "+886266338996",
+        "directTelDisplay": "02-6633-8996",
+        "verify": "餐廳直撥電話取自 TableCheck 須知內文（非正式電話欄位），上線前請餐廳確認。"
+      },
+      {
+        "id": "momo",
+        "name": "桃山",
+        "nameEn": "Momoyama",
+        "type": "日本料理・懷石會席",
+        "floor": "2F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-momoyama/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=21",
+        "image": "assets/img/official/momo.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）",
+        "directTel": "+886266338085",
+        "directTelDisplay": "02-6633-8085",
+        "verify": "餐廳直撥電話取自 TableCheck 須知內文（非正式電話欄位），上線前請餐廳確認。 桃山直撥號碼出現在すし桃頁面。"
+      },
+      {
+        "id": "sushi",
+        "name": "すし桃",
+        "nameEn": "Sushi Momo",
+        "type": "江戶前壽司 Omakase",
+        "floor": "2F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-sushi-momo/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=522",
+        "image": "assets/img/official/sushi.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "thai",
+        "name": "SUKHOTHAI",
+        "nameEn": "Sukhothai",
+        "type": "宮廷泰式料理",
+        "floor": "2F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-sukhothai/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=20",
+        "image": "assets/img/official/thai.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "antoine",
+        "name": "安東廳",
+        "nameEn": "Antoine Room",
+        "type": "頂級牛排館",
+        "floor": "2F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-antoine-room/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=22",
+        "image": "assets/img/official/antoine.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "pizza",
+        "name": "比薩屋",
+        "nameEn": "Pizza Pub",
+        "type": "拿坡里比薩・義式料理",
+        "floor": "B1",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-pizza-pub/reserve/landing",
+          "cnyPhoneOnly": false
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=23",
+        "image": "assets/img/official/pizza.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
+      },
+      {
+        "id": "deli",
+        "name": "The Deli",
+        "nameEn": "The Deli",
+        "type": "外賣店・麵包糕點・伴手禮",
+        "floor": "1F",
+        "booking": {
+          "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-deli/reserve/landing",
+          "cnyPhoneOnly": false,
+          "note": "TableCheck 為蛋糕麵包預購自取，非用餐訂位"
+        },
+        "tel": "+886223211818",
+        "telDisplay": "02-2321-1818",
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=24",
+        "image": "assets/img/official/deli.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）",
+        "directTel": "+886266331373",
+        "directTelDisplay": "02-6633-1373",
+        "verify": "餐廳直撥電話取自 TableCheck 須知內文（非正式電話欄位），上線前請餐廳確認。"
       },
       {
         "id": "lounge",
         "name": "大廳酒吧",
-        "type": "Lounge & Bar",
+        "nameEn": "The Lounge",
+        "type": "特色調飲・風味美饌",
+        "floor": "1F",
         "booking": {
           "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-lounge/reserve/landing",
           "cnyPhoneOnly": false
         },
         "tel": "+886223211818",
         "telDisplay": "02-2321-1818",
-        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=16"
+        "page": "https://www.sheratongrandtaipei.com/websev?lang=zh-tw&ref=pages&cat=2&id=16",
+        "image": "assets/img/official/lounge.jpg",
+        "source": "官網餐廳頁與 TableCheck（2026/10/24 讀取）"
       }
     ],
     "dates": [
@@ -1238,7 +1513,11 @@
     },
     "source": "MEMO SFB-26-072（2026/08/18 簽核）；TableCheck 連結取自官網餐廳頁（2026/10/23）",
     "verify": "MEMO 註明十二廚「僅提供電話訂位」，故春節期間十二廚 CTA 為電話；官網另有十二廚 TableCheck 連結，平日可用。",
-    "showLounge": false
+    "showLounge": false,
+    "bookingHub": {
+      "label": "全部餐廳線上訂位",
+      "url": "https://www.tablecheck.com/zh-TW/sheraton-grand-taipei-hotel-the-guest-house/reserve/landing?require_venue=true"
+    }
   },
   "banquet": {
     "status": "soldout",
@@ -1466,8 +1745,8 @@
     "channels": [
       {
         "id": "online",
-        "label": "官方線上購物",
-        "url": "https://twanga.mohist.com.tw/LIKEGO/sort.php?GetStore=MHH&b=3031"
+        "label": "官方線上購物 LIKEGO",
+        "url": "https://twanga.mohist.com.tw/LIKEGO/index.php?GetStore=MHH"
       },
       {
         "id": "deli",
@@ -1484,14 +1763,14 @@
         "status": "onsale",
         "venue": "The Deli",
         "name": "金雪絮餅禮盒",
-        "spec": "20 入",
+        "spec": "20 入／盒",
         "price": 788,
         "originalPrice": 920,
-        "priceNote": "官網獨享優惠價",
+        "priceNote": "官網獨家限定價（10/27 14:00 前付款）",
         "desc": "奶香牛軋餡融入宜蘭金棗、蔓越莓果乾與南瓜子，低糖不黏牙。",
-        "pickup": "提貨 10/12–12/31，11:00–18:00，1F The Deli",
-        "image": "",
-        "imageStatus": "none",
+        "pickup": "提貨 10/12–10/30，11:00–18:00，1F The Deli；亦可宅配",
+        "image": "assets/img/official/gf-xuexu.jpg",
+        "imageStatus": "official",
         "channels": [
           "online",
           "deli"
@@ -1500,17 +1779,50 @@
           {
             "type": "buy",
             "label": "線上購買",
-            "url": "https://twanga.mohist.com.tw/LIKEGO/sort.php?GetStore=MHH&b=3031"
+            "url": "https://twanga.mohist.com.tw/LIKEGO/detail.php?GetStore=MHH&ProductId=1019349"
           },
           {
             "type": "phone",
             "label": "電話訂購",
-            "tel": "+886223215511",
-            "note": "02-2321-5511"
+            "tel": "+886223215511"
           }
         ],
-        "source": "官網「線上禮遇．人氣伴手禮推薦」（2026/10/23 讀取）",
-        "verify": "官網提貨日至 12/31，春節前是否延長請確認。"
+        "source": "LIKEGO 商品頁 ProductId=1019349（2026/10/24 讀取）",
+        "verify": "LIKEGO 預購至 2026/10/27、提貨至 10/30，春節檔期是否重新開賣請確認。",
+        "imageAlt": "金雪絮餅禮盒（LIKEGO 商品照）"
+      },
+      {
+        "id": "gf-oolong",
+        "status": "onsale",
+        "venue": "The Deli",
+        "name": "凍頂烏龍茶",
+        "spec": "60g × 2 罐",
+        "price": 498,
+        "originalPrice": 700,
+        "priceNote": "線上預購價（12/24 14:00 前付款）",
+        "desc": "台北喜來登精選凍頂烏龍茶，雙罐裝，適合新春拜訪與商務致意。",
+        "pickup": "限自取：提貨 10/13–12/31，11:00–18:00，1F 大廳提貨區",
+        "image": "assets/img/official/gf-oolong.jpg",
+        "imageStatus": "official",
+        "imageAlt": "凍頂烏龍茶雙罐（LIKEGO 商品照）",
+        "channels": [
+          "online",
+          "deli"
+        ],
+        "ctas": [
+          {
+            "type": "buy",
+            "label": "線上購買",
+            "url": "https://twanga.mohist.com.tw/LIKEGO/detail.php?GetStore=MHH&ProductId=1019455"
+          },
+          {
+            "type": "phone",
+            "label": "電話訂購",
+            "tel": "+886223215511"
+          }
+        ],
+        "source": "LIKEGO 商品頁 ProductId=1019455（2026/10/24 讀取）",
+        "verify": "商品照僅 450×500，建議提供高解析度照片；描述文字為暫擬，請行銷確認。預購至 12/24。"
       },
       {
         "id": "gf-cakes",
@@ -1604,23 +1916,28 @@
     ],
     "corporate": {
       "title": "企業大量採購",
-      "text": "春酒、尾牙與客戶致意，由專人提供報價、客製卡片與交期安排。",
+      "text": "春酒、尾牙與客戶致意，由宴會業務部提供報價、客製卡片與交期安排；金雪絮餅另有 10 盒宅配免運組。",
       "ctas": [
         {
           "type": "inquiry",
           "label": "企業採購洽詢",
-          "tel": "+886223215511",
-          "note": "02-2321-5511"
+          "tel": "+886223215511"
+        },
+        {
+          "type": "buy",
+          "label": "宅配 10 盒組（免運）",
+          "url": "https://twanga.mohist.com.tw/LIKEGO/detail.php?GetStore=MHH&ProductId=1019348"
         }
       ]
-    }
+    },
+    "heroImage": "assets/img/official/gifts.jpg"
   },
   "faq": {
     "title": "訂位與購買須知",
     "items": [
       {
         "q": "何時可以訂位？要怎麼訂？",
-        "a": "十二廚已於 2026 年 9 月 14 日開放除夕及春節預訂，除夕及春節期間僅受理電話訂位（02-2321-5511）。"
+        "a": "十二廚已於 2026 年 9 月 14 日開放除夕及春節預訂，除夕及春節期間僅受理電話訂位（餐廳訂位專線 02-2321-1818）；其他餐廳可透過 TableCheck 線上訂位或來電。"
       },
       {
         "q": "訂金怎麼收？",
@@ -1692,5 +2009,34 @@
     ],
     "legal": "本頁價格以新台幣計；餐廳內用另加 10% 服務費。活動內容以飯店現場公告為準，飯店保留修改權利。標示「示意」之影像與內容僅供版面參考。",
     "drinkWarning": "禁止酒駕　未滿十八歲禁止飲酒"
+  },
+  "seo": {
+    "siteUrl": "https://tomtpe.github.io/sheraton-cny-2027/",
+    "title": "團圓有席｜台北喜來登大飯店 2027 新春餐飲",
+    "description": "台北喜來登大飯店 2027 丁未羊年新春：外帶年菜、餐廳除夕及春節餐價、宴會廳圍爐、新春館內活動與伴手禮。",
+    "ogImage": "assets/img/official/jiyang.jpg",
+    "ogImageAlt": "台北喜來登 2027 吉羊納福冷凍年菜",
+    "siteName": "台北喜來登大飯店 Sheraton Grand Taipei Hotel",
+    "locale": "zh_TW",
+    "keywords": [
+      "台北喜來登",
+      "2027 年菜",
+      "除夕",
+      "春節",
+      "圍爐",
+      "十二廚",
+      "外帶年菜",
+      "伴手禮"
+    ],
+    "structuredData": true,
+    "googleSiteVerification": ""
+  },
+  "tracking": {
+    "ga4": "",
+    "gtm": "",
+    "googleAds": "",
+    "metaPixel": "",
+    "cookieNotice": true,
+    "cookieText": "本網站使用 Cookies 與分析工具以改善瀏覽體驗，繼續使用即表示您同意。詳見隱私權政策。"
   }
 }

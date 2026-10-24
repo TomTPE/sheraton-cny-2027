@@ -246,18 +246,28 @@
   /* ---------- 各餐廳除夕菜單：圖像化超連結 ---------- */
   function menusHtml(M) {
     if (!M || !M.items) return '';
-    return '<div class="menus" data-reveal><div class="sub-head"><h3>' + esc(M.title) + '</h3>' + (M.lead ? '<p>' + esc(M.lead) + '</p>' : '') + '</div>' + verify(M.verify, M.title) +
+    var RS = {}; (D.dining.restaurants || []).forEach(function (r) { RS[r.id] = r; });
+    var hub = D.dining.bookingHub;
+    return '<div class="menus" data-reveal><div class="sub-head sub-head--row"><div><h3>' + esc(M.title) + '</h3>' + (M.lead ? '<p>' + esc(M.lead) + '</p>' : '') + '</div>' +
+        (hub ? '<a class="text-link" href="' + esc(hub.url) + '" target="_blank" rel="noopener" aria-label="' + esc(hub.label + '（另開新視窗）') + '">' + esc(hub.label) + icon('arrow') + '</a>' : '') + '</div>' + verify(M.verify, M.title) +
         '<ul class="menu-grid">' + M.items.filter(visible).map(function (m) {
-          var c = (m.ctas && m.ctas[0]) || {}, ext = c.type === 'link' || c.type === 'booking' || c.type === 'buy';
+          var list = m.ctas || [], c = list[0] || {}, ext = c.type === 'link' || c.type === 'booking' || c.type === 'buy';
           var href = c.type === 'anchor' ? '#' + c.target : (c.url || '#');
           var pre = c.preset ? ' data-preset="' + esc(JSON.stringify(c.preset)) + '"' : '';
           var st = m.status === 'soldout' ? ' is-sold' : (m.status === 'confirmed' ? ' is-open' : '');
           var media = m.image ? '<img src="' + esc(m.image) + '" alt="" loading="lazy" decoding="async">' : '';
-          return '<li><a class="menu-tile' + st + '" href="' + esc(href) + '"' + pre + (ext ? ' target="_blank" rel="noopener"' : '') +
+          var r = RS[m.restaurant] || {};
+          var acts = list.slice(1).map(function (a) {
+            if (a.type === 'phone' || a.type === 'inquiry') return '<a class="venue__act" href="tel:' + esc(a.tel) + '" data-track="tel" aria-label="' + esc(m.venue + ' ' + (a.label || '電話') + '，撥打 ' + telDisplay(a.tel)) + '">' + icon('phone') + '<span>' + esc(a.label || '電話') + '</span></a>';
+            return '<a class="venue__act" href="' + esc(a.url) + '" target="_blank" rel="noopener" data-track="' + esc(a.type) + '" aria-label="' + esc(m.venue + ' ' + (a.label || '') + '（另開新視窗）') + '">' + icon(a.type === 'booking' ? 'calendar' : 'arrow') + '<span>' + esc(a.label) + '</span></a>';
+          }).join('');
+          var direct = r.directTel && !list.some(function (a) { return a.tel === r.directTel; }) ? '<a class="venue__direct" href="tel:' + esc(r.directTel) + '" data-track="tel" aria-label="' + esc(m.venue + ' 餐廳直撥 ' + r.directTelDisplay) + '">餐廳直撥 ' + esc(r.directTelDisplay) + '</a>' : '';
+          return '<li class="venue' + st + '"><a class="menu-tile' + st + '" href="' + esc(href) + '"' + pre + (ext ? ' target="_blank" rel="noopener"' : '') +
             ' aria-label="' + esc(m.venue + '，' + m.note + '，' + (c.label || '') + (ext ? '（另開新視窗）' : '')) + '">' +
             '<span class="menu-tile__media">' + media + (m.imageStatus === 'reference' || m.imageStatus === 'placeholder' ? '<span class="ph-tag">示意圖</span>' : '') + '</span>' +
-            '<span class="menu-tile__body"><span class="menu-tile__label">' + esc(m.label) + '</span><strong>' + esc(m.venue) + '</strong>' +
-            '<span class="menu-tile__note">' + esc(m.note) + '</span><span class="menu-tile__go">' + esc(c.label || '查看') + icon('arrow') + '</span></span></a></li>';
+            '<span class="menu-tile__body"><span class="menu-tile__label">' + esc(m.label) + (r.floor ? '・' + esc(r.floor) : '') + '</span><strong>' + esc(m.venue) + '</strong>' +
+            '<span class="menu-tile__note">' + esc(m.note) + '</span><span class="menu-tile__go">' + esc(c.label || '查看') + icon('arrow') + '</span></span></a>' +
+            (acts ? '<div class="venue__acts">' + acts + '</div>' : '') + direct + '</li>';
         }).join('') + '</ul></div>';
   }
 
@@ -418,10 +428,11 @@
     $('[data-footer]').innerHTML =
       '<div class="wrap"><div class="foot__hero"><span class="foot__logo"><img src="' + esc(lg.onDark) + '" alt="' + esc(lg.alt) + '" width="92" height="81"></span>' +
       '<p class="foot__hotel">台北喜來登大飯店<small>SHERATON GRAND TAIPEI HOTEL</small></p>' +
-      ctas([{ type: 'phone', label: '訂位與訂購專線 ' + c.main.display, tel: c.main.tel }]) + '</div>' +
+      ctas([c.dining ? { type: 'phone', label: '餐廳訂位 ' + c.dining.display, tel: c.dining.tel } : null, { type: 'phone', label: '年菜・伴手禮 ' + c.main.display, tel: c.main.tel }].filter(Boolean), true) + '</div>' +
       '<div class="foot__grid"><div class="foot__contact"><h4>聯絡我們</h4><ul>' +
       '<li><span>地址</span>' + esc(c.address) + '</li>' +
-      '<li><span>電話</span><a href="tel:' + esc(c.main.tel) + '">' + esc(c.main.display) + '</a></li>' +
+      [c.main, c.dining, c.banquet].filter(Boolean).map(function (t) { return '<li><span>' + esc(t === c.main ? '總機' : t.label) + '</span><a href="tel:' + esc(t.tel) + '" data-track="tel">' + esc(t.display) + '</a></li>'; }).join('') +
+      (c.line ? '<li><span>LINE</span><a href="' + esc(c.line.url) + '" target="_blank" rel="noopener">官方帳號</a></li>' : '') +
       '<li><span>傳真</span>' + esc(c.fax) + '</li>' +
       '<li><span>信箱</span><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></li>' +
       '<li><span>統編</span>' + esc(c.taxId) + '</li></ul></div>' +
@@ -625,10 +636,77 @@
     $('button', p).addEventListener('click', function () { p.classList.toggle('is-min'); });
   }
 
+  /* ---------- 追蹤碼（GA4／GTM／Google Ads／Meta Pixel，由 CMS「SEO 與追蹤碼」設定） ---------- */
+  var TRACK = { tel: 'click_tel', inquiry: 'click_tel', booking: 'click_booking', buy: 'click_buy', link: 'click_outbound' };
+  function track(name, params) {
+    if (typeof window.gtag === 'function') window.gtag('event', name, params);
+    else if (window.dataLayer) window.dataLayer.push(Object.assign({ event: name }, params));
+    if (name === 'click_booking' && window.fbq) window.fbq('track', 'Lead');
+  }
+  function tracking() {
+    var t = D.tracking || {};
+    // CMS 草稿預覽與本機測試不送資料，避免污染報表
+    if (DRAFT || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+    var ok = function (v, re) { return typeof v === 'string' && re.test(v); };
+    var ga4 = ok(t.ga4, /^G-[A-Z0-9]{4,12}$/) ? t.ga4 : '', gtm = ok(t.gtm, /^GTM-[A-Z0-9]{4,10}$/) ? t.gtm : '';
+    var ads = ok(t.googleAds, /^AW-\d{6,12}$/) ? t.googleAds : '', px = ok(t.metaPixel, /^\d{10,20}$/) ? t.metaPixel : '';
+    var consent = null; try { consent = localStorage.getItem('cny2027Consent'); } catch (e) { consent = null; }
+    function load(src) { var sc = document.createElement('script'); sc.async = true; sc.src = src; document.head.appendChild(sc); }
+    window.dataLayer = window.dataLayer || [];
+    if (ga4 || gtm || ads) {
+      window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+      // Consent Mode v2：分析預設允許；廣告相關待使用者按「我知道了」後才允許
+      window.gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: consent ? 'granted' : 'denied', ad_user_data: consent ? 'granted' : 'denied', ad_personalization: consent ? 'granted' : 'denied' });
+    }
+    if (gtm) { window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' }); load('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtm)); }
+    if (ga4 || ads) {
+      load('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ga4 || ads));
+      window.gtag('js', new Date());
+      if (ga4) window.gtag('config', ga4);
+      if (ads) window.gtag('config', ads);
+    }
+    function pixel() {
+      if (!px || window.fbq) return;
+      var f = window.fbq = function () { f.callMethod ? f.callMethod.apply(f, arguments) : f.queue.push(arguments); };
+      f.push = f; f.loaded = true; f.version = '2.0'; f.queue = [];
+      load('https://connect.facebook.net/en_US/fbevents.js');
+      window.fbq('init', px); window.fbq('track', 'PageView');
+    }
+    if (consent) pixel();
+    if (t.cookieNotice && !consent && (ga4 || gtm || ads || px)) {
+      var bar = document.createElement('div');
+      bar.className = 'consent'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Cookie 告知');
+      var priv = (D.footer.links || []).filter(function (l) { return /隱私/.test(l.label); })[0];
+      bar.innerHTML = '<p>' + esc(t.cookieText || '本網站使用 Cookies 以改善瀏覽體驗。') + (priv ? ' <a href="' + esc(priv.url) + '" target="_blank" rel="noopener">隱私權政策</a>' : '') + '</p><button type="button" class="btn btn--gold btn--sm">我知道了</button>';
+      document.body.appendChild(bar);
+      $('button', bar).addEventListener('click', function () {
+        try { localStorage.setItem('cny2027Consent', 'granted'); } catch (e) { /* 無痕模式 */ }
+        if (window.gtag) window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+        pixel(); bar.remove();
+      });
+    }
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[data-track]');
+      if (!a || !TRACK[a.getAttribute('data-track')]) return;
+      var sec = a.closest('section[id], [data-section]');
+      track(TRACK[a.getAttribute('data-track')], { link_url: a.getAttribute('href'), link_text: (a.textContent || '').trim().slice(0, 60), section: sec ? (sec.id || sec.getAttribute('data-section')) : '' });
+    });
+  }
+
   /* ---------- 啟動 ---------- */
   function load() {
     if (DRAFT) {
-      var tok = sessionStorage.getItem('cmsToken') || '';
+      var tok = sessionStorage.getItem('cmsToken') || '', gh = null;
+      try { gh = JSON.parse(sessionStorage.getItem('cmsGithub') || 'null'); } catch (e) { gh = null; }
+      if (gh && gh.owner && gh.repo) {
+        // 雲端後台（GitHub）：草稿存於儲存庫 cms/draft.json；新上傳圖片尚未部署，預覽時改讀 GitHub 原始檔
+        var base = 'https://api.github.com/repos/' + encodeURIComponent(gh.owner) + '/' + encodeURIComponent(gh.repo) + '/contents/';
+        var raw = 'https://raw.githubusercontent.com/' + encodeURIComponent(gh.owner) + '/' + encodeURIComponent(gh.repo) + '/' + encodeURIComponent(gh.branch || 'main') + '/assets/uploads/';
+        var get = function (path) { return fetch(base + path + '?ref=' + encodeURIComponent(gh.branch || 'main'), { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' }); };
+        return get('cms/draft.json').then(function (r) { return r.status === 404 ? get('data/content.json') : r; })
+          .then(function (r) { if (!r.ok) throw new Error('draft ' + r.status); return r.text(); })
+          .then(function (t) { return JSON.parse(t.split('"assets/uploads/').join('"' + raw)); });
+      }
       return fetch('/api/content?stage=draft', { headers: { 'X-Admin-Token': tok }, cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('draft ' + r.status); return r.json(); });
     }
     return fetch('data/content.json', { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('content ' + r.status); return r.json(); });
@@ -636,7 +714,7 @@
   load().then(function (data) {
     D = data;
     applyBrand(); renderNav(); renderHero(); renderPaths(); renderTakeaway(); renderDining(); renderBanquet(); renderEvents(); renderGifts(); renderFaq(); renderFooter();
-    observeReveal(document); navSpy(); startSlideshow(); heroMotion(); rails(); globalEvents(); reviewPanel();
+    observeReveal(document); navSpy(); startSlideshow(); heroMotion(); rails(); globalEvents(); reviewPanel(); tracking();
     if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
   }).catch(function (err) {
     $('main').innerHTML = '<div class="load-error"><p>內容載入失敗（' + esc(err.message) + '）。請以本機伺服器開啟本頁，或來電 02-2321-5511 洽詢。</p></div>';

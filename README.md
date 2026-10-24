@@ -42,3 +42,9 @@ python3 server.py --port 8777
 
 ## 上線前須確認
 執行 `?review` 查看完整清單。重點：宴會廳六人桌價格、包廂低消所屬餐廳、取消政策日期、吉羊納福宅配日期筆誤與正式圖片授權、金雪絮餅提貨期限、館內活動（除除夕晚會外皆示意）、所有示意圖替換、Google Fonts 對外連線、商標聲明文字（需法務確認）、正式部署與品牌發布授權。
+
+## 雲端後台與資料盤點（2026-10-24）
+
+- 雲端後台：https://tomtpe.github.io/sheraton-cny-2027/admin/（以 GitHub fine-grained token 登入）
+- 資料來源、電話、訂位連結、照片、SEO 與 GA4 設定：見 [docs/資料盤點與雲端後台.md](docs/資料盤點與雲端後台.md)
+- 本機後台（server.py）仍可使用，未設定 CMS_CONFIG 時自動使用本機 API。
