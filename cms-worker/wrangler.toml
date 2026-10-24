@@ -13,4 +13,4 @@ ALLOWED_ORIGINS = "https://tomtpe.github.io"
 [[d1_databases]]
 binding = "DB"
 database_name = "sheraton-cny-cms"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "a15187c1-ef5a-48c3-bc1c-403657d39342"
