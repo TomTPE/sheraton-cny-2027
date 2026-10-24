@@ -112,7 +112,11 @@ async function writeFile(env, path, base64, message, sha) {
   return gh(env, 'PUT', '/contents/' + path, body);
 }
 
-function ghHint(code) {
+function ghHint(code, data) {
+  const m = data && data.message ? '（GitHub：' + String(data.message).slice(0, 120) + '）' : '';
+  return ghHintBase(code) + m;
+}
+function ghHintBase(code) {
   if (code === 401) return 'Worker 的 GitHub 金鑰無效或已過期，請管理員重新執行 wrangler secret put GITHUB_TOKEN';
   if (code === 403) return 'Worker 的 GitHub 金鑰權限不足，需要此儲存庫的 Contents：Read and write';
   if (code === 404) return 'Worker 的 GitHub 金鑰沒有被授權存取此儲存庫';
@@ -286,7 +290,7 @@ async function putDraft(env, req, me) {
   doc.meta.updatedBy = me.username;
   const w = await writeFile(env, DRAFT, b64encodeBytes(enc.encode(dump(doc))), 'CMS 草稿：' + me.username, cur.missing ? null : cur.sha);
   if (w.status === 409 || w.status === 422) return fail(env, req, 409, '草稿已被其他人更新，請重新載入後再編輯');
-  if (!w.ok) return fail(env, req, 502, '儲存失敗：' + ghHint(w.status));
+  if (!w.ok) return fail(env, req, 502, '儲存失敗：' + ghHint(w.status, w.data));
   await audit(env, me.username, 'save_draft', doc.meta.revision, '', req);
   const tag = w.data.content.sha;
   return json(env, req, 200, { ok: true, etag: tag, meta: doc.meta }, { ETag: '"' + tag + '"' });
@@ -307,7 +311,7 @@ async function publish(env, req, me) {
   doc.meta.updatedAt = nowIso();
   doc.meta.updatedBy = me.username;
   const w = await writeFile(env, CONTENT, b64encodeBytes(enc.encode(dump(doc))), 'CMS 發布 rev ' + rev + '：' + me.username, pub.sha);
-  if (!w.ok) return fail(env, req, 502, '發布失敗：' + ghHint(w.status));
+  if (!w.ok) return fail(env, req, 502, '發布失敗：' + ghHint(w.status, w.data));
   await audit(env, me.username, 'publish', rev, '', req);
   return json(env, req, 200, { ok: true, revision: rev, updatedAt: doc.meta.updatedAt, note: '已送出，GitHub Actions 驗證與建置後約 1–2 分鐘上線' });
 }
@@ -356,7 +360,7 @@ async function upload(env, req, me) {
   if (!exists.ok) {
     const name = decodeURIComponent(req.headers.get('X-Filename') || '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 80);
     const w = await writeFile(env, rel, b64encodeBytes(buf), 'CMS 上傳 ' + rel + ' ← ' + name + '：' + me.username);
-    if (!w.ok) return fail(env, req, 502, '上傳失敗：' + ghHint(w.status));
+    if (!w.ok) return fail(env, req, 502, '上傳失敗：' + ghHint(w.status, w.data));
   }
   await audit(env, me.username, 'upload', null, rel, req);
   return json(env, req, 201, { path: rel, bytes: buf.length, type: ext });
@@ -382,6 +386,7 @@ export default {
 
       const me = await currentUser(env, req);
       if (!me) return fail(env, req, 401, '請先登入');
+      if (!env.GITHUB_TOKEN && req.method !== 'GET') return fail(env, req, 503, 'Worker 尚未設定 GitHub 金鑰（GITHUB_TOKEN 為空），請管理員重新設定後再儲存');
       if (p === '/api/logout' && req.method === 'POST') { await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(me.tokenHash).run(); return json(env, req, 200, { ok: true }); }
       if (p === '/api/whoami') return json(env, req, 200, { role: me.role, username: me.username, displayName: me.display_name, mustChange: !!me.must_change });
       if (p === '/api/password' && req.method === 'POST') return changeOwnPassword(env, req, me);
