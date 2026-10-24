@@ -500,7 +500,9 @@
     const meta = S.draft && S.draft.meta;
     const info = meta ? '草稿最後儲存：' + (meta.updatedAt || '—') + '（' + (ROLE_LABELS[meta.updatedBy] || meta.updatedBy || '—') + '）' : '';
     const live = S.published && S.published.meta ? '｜線上版本 rev ' + S.published.meta.revision : '';
-    st.textContent = (dirty ? '● 有未儲存的變更　' : '已儲存　') + info + live;
+    // 雲端後台尚無草稿時，畫面上是線上版本的內容，不能顯示成「已儲存」
+    if (S.etag === 'new') { st.textContent = (dirty ? '● 有未儲存的變更　' : '') + '尚無草稿（目前顯示線上版本內容）' + live; return; }
+    st.textContent = (dirty ? '● 有未儲存的變更　' : '沒有未儲存的變更　') + info + live;
   }
 
   // ------------------------------------------------------------------
