@@ -15,6 +15,10 @@
     <form id="login-form" class="login-card" novalidate>
       <h1 id="login-title">後台上稿平台</h1>
       <p class="muted">台北喜來登 2027 新春宣傳網站</p>
+      <div class="field" id="login-user-field" hidden>
+        <label for="login-user">帳號</label>
+        <input id="login-user" name="username" type="text" autocomplete="username" autocapitalize="off" spellcheck="false">
+      </div>
       <div class="field">
         <label for="login-token">後台金鑰</label>
         <input id="login-token" name="token" type="password" autocomplete="off" spellcheck="false" required aria-describedby="login-help login-error">
@@ -37,6 +41,7 @@
         <button type="button" id="btn-save" class="btn btn-primary">儲存草稿</button>
         <button type="button" id="btn-preview" class="btn">預覽</button>
         <button type="button" id="btn-publish" class="btn btn-accent" hidden>發布</button>
+        <button type="button" id="btn-password" class="btn btn-ghost" hidden>變更密碼</button>
         <button type="button" id="btn-logout" class="btn btn-ghost">登出</button>
       </div>
     </header>
@@ -80,6 +85,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="cms-config.js"></script>
   <script src="github-backend.js"></script>
+  <script src="worker-backend.js"></script>
 
   <script src="admin.js" defer></script>
 </body>

@@ -248,3 +248,6 @@ table.data th { background: var(--bg); font-weight: 600; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 .section-card > h2 code, .module-head code { margin-left: 8px; font-size: .7em; font-weight: 400; }
+
+/* 帳號管理 */
+.row-actions { display: flex; flex-wrap: wrap; gap: 6px; }

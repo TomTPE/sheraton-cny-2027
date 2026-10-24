@@ -29,8 +29,8 @@ if not DIST.is_dir():
 ALLOW_ADMIN = "--allow-admin" in sys.argv
 if ALLOW_ADMIN:
     cfg = (DIST / "admin" / "cms-config.js")
-    if not cfg.is_file() or '"backend": "github"' not in cfg.read_text(encoding="utf-8"):
-        err("雲端後台缺少 GitHub 後端設定 admin/cms-config.js")
+    if not cfg.is_file() or not re.search(r'"backend": "(github|worker)"', cfg.read_text(encoding="utf-8")):
+        err("雲端後台缺少後端設定 admin/cms-config.js")
     if 'http-equiv="Content-Security-Policy"' not in (DIST / "admin" / "index.html").read_text(encoding="utf-8"):
         err("雲端後台 index.html 缺少 Content-Security-Policy")
 for pat in (["admin"] if not ALLOW_ADMIN else []) + ["server.py", "docs", "scripts", ".cms-tokens.json", "data/draft.json", "data/revisions", "data/audit.log", "README.md", ".github"]:

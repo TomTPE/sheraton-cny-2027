@@ -31,6 +31,9 @@ jobs:
         run: |
           python3 -I -c "import sys, json; sys.path.insert(0, '.'); import server; e = server.validate_document(json.load(open('data/content.json', encoding='utf-8'))); [print('::error::' + x['path'] + '：' + x['message']) for x in e]; sys.exit(1 if e else 0)"
       - name: 建置（測試環境，強制 noindex、移除校稿欄位、寫入 SEO 標籤，並部署雲端後台）
+        # CMS_API（儲存庫變數）設定後，後台改用 Cloudflare Worker 帳號密碼登入；未設定時沿用 GitHub 金鑰登入
+        env:
+          CMS_API: ${{ vars.CMS_API }}
         run: python3 scripts/build.py --env test --out dist --with-admin --repo "${{ github.repository }}" --branch main
       - name: 檢查建置產物（無內部欄位、引用檔案皆存在、色票、SEO、後台 CSP）
         run: python3 scripts/check_dist.py dist --allow-admin

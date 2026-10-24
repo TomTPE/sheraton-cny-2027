@@ -696,8 +696,15 @@
   /* ---------- 啟動 ---------- */
   function load() {
     if (DRAFT) {
-      var tok = sessionStorage.getItem('cmsToken') || '', gh = null;
-      try { gh = JSON.parse(sessionStorage.getItem('cmsGithub') || 'null'); } catch (e) { gh = null; }
+      var tok = sessionStorage.getItem('cmsToken') || '', gh = null, wk = null;
+      try { gh = JSON.parse(sessionStorage.getItem('cmsGithub') || 'null'); wk = JSON.parse(sessionStorage.getItem('cmsWorker') || 'null'); } catch (e) { gh = null; wk = null; }
+      if (wk && /^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost):\d+)/.test(wk.api || '')) {
+        // 雲端後台（Cloudflare Worker）：以登入權杖讀草稿；新上傳圖片尚未部署，改讀 GitHub 原始檔
+        var rawW = 'https://raw.githubusercontent.com/' + encodeURIComponent(wk.owner) + '/' + encodeURIComponent(wk.repo) + '/' + encodeURIComponent(wk.branch || 'main') + '/assets/uploads/';
+        return fetch(wk.api + '/api/content?stage=draft', { headers: { Authorization: 'Bearer ' + tok }, cache: 'no-store', credentials: 'omit' })
+          .then(function (r) { if (!r.ok) throw new Error('draft ' + r.status); return r.text(); })
+          .then(function (t) { return JSON.parse(t.split('"assets/uploads/').join('"' + rawW)); });
+      }
       if (gh && gh.owner && gh.repo) {
         // 雲端後台（GitHub）：草稿存於儲存庫 cms/draft.json；新上傳圖片尚未部署，預覽時改讀 GitHub 原始檔
         var base = 'https://api.github.com/repos/' + encodeURIComponent(gh.owner) + '/' + encodeURIComponent(gh.repo) + '/contents/';

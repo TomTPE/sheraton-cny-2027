@@ -1,0 +1,16 @@
+# 台北喜來登 2027 新春網站｜雲端後台 API
+name = "sheraton-cny-cms"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+GITHUB_REPO = "TomTPE/sheraton-cny-2027"
+GITHUB_BRANCH = "main"
+ALLOWED_ORIGINS = "https://tomtpe.github.io"
+# GITHUB_TOKEN 為機密，請用 `wrangler secret put GITHUB_TOKEN` 設定，不要寫在這個檔案
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sheraton-cny-cms"
+database_id = "REPLACE_WITH_D1_ID"

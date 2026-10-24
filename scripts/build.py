@@ -148,9 +148,14 @@ def copy_admin(out, args):
     owner, name = repo.split("/", 1)
     shutil.copytree(ROOT / "admin", out / "admin")
     cfg = {"backend": "github", "owner": owner, "repo": name, "branch": args.branch}
+    api = args.cms_api or os.environ.get("CMS_API", "")
+    if api:
+        if not re.match(r"^(https://[a-z0-9.-]+|http://(127\.0\.0\.1|localhost):\d+)(/[A-Za-z0-9._/-]*)?$", api):
+            sys.exit("中止：CMS_API 必須是 https:// 網址（本機測試可用 http://127.0.0.1:埠號）")
+        cfg = {"backend": "worker", "api": api.rstrip("/"), "owner": owner, "repo": name, "branch": args.branch}
     csp = ('<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\'; style-src \'self\'; '
-           'img-src \'self\' https: data: blob:; connect-src \'self\' https://api.github.com; frame-src \'self\'; '
-           'base-uri \'none\'; form-action \'self\'; object-src \'none\'">')
+           'img-src \'self\' https: data: blob:; connect-src \'self\' https://api.github.com %s; frame-src \'self\'; '
+           'base-uri \'none\'; form-action \'self\'; object-src \'none\'">') % (cfg.get("api", ""),)
     idx = out / "admin" / "index.html"
     idx.write_text(idx.read_text(encoding="utf-8").replace('<meta charset="utf-8">', '<meta charset="utf-8">\n  ' + csp, 1), encoding="utf-8")
     (out / "admin" / "cms-config.js").write_text("window.CMS_CONFIG = %s;\n" % json.dumps(cfg), encoding="utf-8")
@@ -163,6 +168,7 @@ def main():
     ap.add_argument("--with-admin", action="store_true", help="一併部署雲端後台（GitHub 儲存庫作為資料後端）")
     ap.add_argument("--repo", default="", help="雲端後台使用的儲存庫，格式 owner/name（預設讀 GITHUB_REPOSITORY）")
     ap.add_argument("--branch", default="main")
+    ap.add_argument("--cms-api", default="", help="雲端後台 API（Cloudflare Worker）網址；有設定時改用帳號密碼登入")
     args = ap.parse_args()
 
     data = json.loads((ROOT / "data" / "content.json").read_text(encoding="utf-8"))

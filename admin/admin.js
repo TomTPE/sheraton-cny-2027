@@ -23,7 +23,8 @@
     { id: 'footer', label: '頁尾', keys: ['footer'] },
     { id: 'seo', label: 'SEO 與追蹤碼', keys: ['seo', 'tracking'] },
     { id: 'revisions', label: '版本紀錄', special: true },
-    { id: 'audit', label: '操作紀錄', special: true, publisherOnly: true }
+    { id: 'audit', label: '操作紀錄', special: true, publisherOnly: true },
+    { id: 'accounts', label: '帳號管理', special: true, adminOnly: true }
   ];
   const REQUIRED_KEYS = ['meta', 'brand', 'contacts', 'nav', 'hero', 'takeaway', 'dining', 'banquet', 'events', 'gifts', 'faq', 'footer'];
   const STATUS_OPTIONS = [
@@ -57,8 +58,10 @@
     googleAds: [/^AW-\d{6,12}$/, 'Google Ads 轉換 ID 格式為 AW-123456789'],
     metaPixel: [/^\d{10,20}$/, 'Meta Pixel ID 為 10–20 位數字']
   };
-  const AUDIT_LABELS = { save_draft: '儲存草稿', publish: '發布', rollback: '還原至草稿', upload: '上傳圖片', auth_fail: '金鑰驗證失敗' };
-  const ROLE_LABELS = { editor: '編輯者', publisher: '發布者' };
+  const AUDIT_LABELS = { save_draft: '儲存草稿', publish: '發布', rollback: '還原至草稿', upload: '上傳圖片', auth_fail: '金鑰驗證失敗', login: '登入', login_fail: '登入失敗', password_change: '變更密碼', user_create: '新增帳號', user_update: '修改帳號', user_delete: '刪除帳號' };
+  const ROLE_LABELS = { editor: '編輯者', publisher: '發布者', admin: '管理員' };
+  const canPublish = () => S.role === 'publisher' || S.role === 'admin';
+  const isAdmin = () => S.role === 'admin';
 
   const LABELS = {
     meta: '網站設定', nav: '導覽列', ctaTypes: 'CTA 類型', brand: '品牌 CIS', contacts: '聯絡資訊',
@@ -466,7 +469,7 @@
   // ------------------------------------------------------------------
   // 版面：導覽與狀態
   // ------------------------------------------------------------------
-  function visibleModules() { return MODULES.filter(m => !m.publisherOnly || S.role === 'publisher'); }
+  function visibleModules() { return MODULES.filter(m => (!m.publisherOnly || canPublish()) && (!m.adminOnly || (isAdmin() && window.CMS_BACKEND && window.CMS_BACKEND.accounts))); }
 
   function renderNav() {
     const list = $('#module-list');
@@ -511,6 +514,7 @@
     const mod = MODULES.find(m => m.id === S.module) || MODULES[0];
     if (mod.id === 'revisions') { renderRevisions(root); return; }
     if (mod.id === 'audit') { renderAudit(root); return; }
+    if (mod.id === 'accounts') { renderAccounts(root); return; }
 
     root.appendChild(el('div', { class: 'module-head' }, [el('h1', { text: mod.label })]));
     for (const key of moduleKeys(mod)) {
@@ -1000,7 +1004,7 @@
     if (!r.ok) { box.appendChild(el('p', { class: 'error-text', text: errMsg(r) })); return; }
     const revs = r.data.revisions || [];
     if (!revs.length) { box.appendChild(el('p', { text: '尚無版本快照。' })); return; }
-    const head = ['版本', '發布時間', '發布者', '狀態'].concat(S.role === 'publisher' ? ['動作'] : []);
+    const head = ['版本', '發布時間', '發布者', '狀態'].concat(canPublish() ? ['動作'] : []);
     const tbody = el('tbody');
     for (const v of revs) {
       const cells = [
@@ -1009,7 +1013,7 @@
         el('td', { text: ROLE_LABELS[v.updatedBy] || v.updatedBy || '—' }),
         el('td', null, v.live ? el('span', { class: 'badge badge-live', text: '目前線上' }) : '')
       ];
-      if (S.role === 'publisher') {
+      if (canPublish()) {
         cells.push(el('td', null, el('button', { type: 'button', class: 'btn btn-small', onclick: () => rollback(v.revision) }, '還原至草稿')));
       }
       tbody.appendChild(el('tr', null, cells));
@@ -1034,6 +1038,159 @@
     reloadPreview();
     toast('已將 rev ' + rev + ' 還原至草稿，請預覽確認後再發布');
     renderModule();
+  }
+
+  // --- 帳號管理（雲端 Worker 後端、管理員限定）---
+  const PW_HINT = '至少 12 字元，含大寫、小寫、數字、符號其中三種，且不可包含帳號名稱';
+  function roleSelect(value, id) {
+    const sel = el('select', { id });
+    for (const r of ['editor', 'publisher', 'admin']) sel.appendChild(el('option', { value: r, selected: r === value ? true : null }, ROLE_LABELS[r]));
+    return sel;
+  }
+  async function askPassword(title, intro) {
+    const d = el('dialog', { class: 'modal' });
+    const id1 = nextId(), id2 = nextId();
+    const p1 = el('input', { id: id1, type: 'password', autocomplete: 'new-password' });
+    const p2 = el('input', { id: id2, type: 'password', autocomplete: 'new-password' });
+    const msg = el('p', { class: 'error-text', role: 'alert' });
+    const form = el('form', { method: 'dialog', class: 'modal-inner' }, [
+      el('h2', { text: title }), intro ? el('p', { text: intro }) : '',
+      el('div', { class: 'field' }, [el('label', { for: id1, text: '新密碼' }), p1, el('p', { class: 'help', text: PW_HINT })]),
+      el('div', { class: 'field' }, [el('label', { for: id2, text: '再輸入一次' }), p2]), msg,
+      el('div', { class: 'modal-actions' }, [el('button', { type: 'submit', class: 'btn btn-primary', value: 'ok' }, '確定'), el('button', { type: 'submit', class: 'btn', value: 'cancel', formnovalidate: true }, '取消')])
+    ]);
+    d.appendChild(form);
+    document.body.appendChild(d);
+    return new Promise((resolve) => {
+      form.addEventListener('submit', (e) => {
+        if (e.submitter && e.submitter.value === 'cancel') return;
+        if (p1.value.length < 12) { e.preventDefault(); msg.textContent = PW_HINT; return; }
+        if (p1.value !== p2.value) { e.preventDefault(); msg.textContent = '兩次輸入不同'; }
+      });
+      d.addEventListener('close', () => { const v = d.returnValue === 'ok' ? p1.value : null; d.remove(); resolve(v); }, { once: true });
+      d.showModal();
+      p1.focus();
+    });
+  }
+  async function changeOwnPassword(forced) {
+    const d = el('dialog', { class: 'modal' });
+    const ids = [nextId(), nextId(), nextId()];
+    const cur = el('input', { id: ids[0], type: 'password', autocomplete: 'current-password' });
+    const n1 = el('input', { id: ids[1], type: 'password', autocomplete: 'new-password' });
+    const n2 = el('input', { id: ids[2], type: 'password', autocomplete: 'new-password' });
+    const msg = el('p', { class: 'error-text', role: 'alert' });
+    const actions = [el('button', { type: 'submit', class: 'btn btn-primary', value: 'ok' }, '變更密碼')];
+    if (!forced) actions.push(el('button', { type: 'button', class: 'btn', onclick: () => d.close('cancel') }, '取消'));
+    const form = el('form', { class: 'modal-inner' }, [
+      el('h2', { text: forced ? '首次登入，請先變更密碼' : '變更密碼' }),
+      el('div', { class: 'field' }, [el('label', { for: ids[0], text: forced ? '管理員給您的暫時密碼' : '目前密碼' }), cur]),
+      el('div', { class: 'field' }, [el('label', { for: ids[1], text: '新密碼' }), n1, el('p', { class: 'help', text: PW_HINT })]),
+      el('div', { class: 'field' }, [el('label', { for: ids[2], text: '再輸入一次' }), n2]), msg,
+      el('div', { class: 'modal-actions' }, actions)
+    ]);
+    d.appendChild(form);
+    if (forced) d.addEventListener('cancel', (e) => e.preventDefault());
+    document.body.appendChild(d);
+    return new Promise((resolve) => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (n1.value !== n2.value) { msg.textContent = '兩次輸入的新密碼不同'; return; }
+        msg.textContent = '處理中…';
+        const r = await api('POST', '/api/password', { body: { current: cur.value, next: n1.value } });
+        if (!r.ok) { msg.textContent = errMsg(r); return; }
+        cur.value = n1.value = n2.value = '';
+        d.close('ok');
+      });
+      d.addEventListener('close', () => { const ok = d.returnValue === 'ok'; d.remove(); if (ok) toast('密碼已變更；其他裝置的登入已登出'); resolve(ok); }, { once: true });
+      d.showModal();
+      cur.focus();
+    });
+  }
+
+  async function renderAccounts(root) {
+    root.appendChild(el('div', { class: 'module-head' }, [el('h1', { text: '帳號管理' })]));
+    root.appendChild(el('p', { class: 'muted', text: '管理員可新增帳號、調整角色、重設密碼、停用或刪除帳號。新帳號與重設密碼後，對方首次登入必須自行變更密碼。連續 5 次密碼錯誤會鎖定 15 分鐘。' }));
+    const roleNote = el('ul', { class: 'muted' }, [
+      el('li', { text: '編輯者：編輯與儲存草稿、上傳圖片、預覽' }),
+      el('li', { text: '發布者：編輯者權限＋發布上線、還原版本、查看操作紀錄' }),
+      el('li', { text: '管理員：發布者權限＋帳號管理' })
+    ]);
+    root.appendChild(roleNote);
+
+    // 新增帳號
+    const ids = { u: nextId(), n: nextId(), r: nextId(), p: nextId() };
+    const fu = el('input', { id: ids.u, type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: '例：amy.chen' });
+    const fn = el('input', { id: ids.n, type: 'text', autocomplete: 'off', placeholder: '例：陳小姐（行銷部）' });
+    const fr = roleSelect('editor', ids.r);
+    const fp = el('input', { id: ids.p, type: 'password', autocomplete: 'new-password' });
+    const fmsg = el('p', { class: 'error-text', role: 'alert' });
+    const createCard = el('section', { class: 'section-card' }, [
+      el('h2', { text: '新增帳號' }),
+      el('div', { class: 'field' }, [el('label', { for: ids.u, text: '帳號（登入用，3–32 字元小寫英數字，可含 . _ -）' }), fu]),
+      el('div', { class: 'field' }, [el('label', { for: ids.n, text: '顯示名稱' }), fn]),
+      el('div', { class: 'field' }, [el('label', { for: ids.r, text: '角色' }), fr]),
+      el('div', { class: 'field' }, [el('label', { for: ids.p, text: '暫時密碼（請用安全管道另外告知對方）' }), fp, el('p', { class: 'help', text: PW_HINT })]),
+      fmsg,
+      el('button', { type: 'button', class: 'btn btn-primary', onclick: async () => {
+        fmsg.textContent = '建立中…';
+        const r = await api('POST', '/api/users', { body: { username: fu.value.trim().toLowerCase(), displayName: fn.value.trim(), role: fr.value, password: fp.value } });
+        if (!r.ok) { fmsg.textContent = errMsg(r); return; }
+        fmsg.textContent = ''; fp.value = ''; toast('已建立帳號 ' + fu.value.trim().toLowerCase());
+        fu.value = ''; fn.value = '';
+        loadList();
+      } }, '建立帳號')
+    ]);
+
+    const listBox = el('section', { class: 'section-card' }, el('p', { text: '載入中…' }));
+    root.appendChild(listBox);
+    root.appendChild(createCard);
+
+    async function patch(u, body, done) {
+      const r = await api('PATCH', '/api/users/' + u.id, { body });
+      if (!r.ok) { toast(errMsg(r), 'error'); return; }
+      toast(done);
+      loadList();
+    }
+    async function loadList() {
+      const r = await api('GET', '/api/users');
+      listBox.replaceChildren(el('h2', { text: '帳號清單' }));
+      if (!r.ok) { listBox.appendChild(el('p', { class: 'error-text', text: errMsg(r) })); return; }
+      const tbody = el('tbody');
+      for (const u of r.data.users) {
+        const rid = nextId();
+        const rs = roleSelect(u.role, rid);
+        rs.setAttribute('aria-label', u.username + ' 的角色');
+        rs.addEventListener('change', () => patch(u, { role: rs.value }, '已將 ' + u.username + ' 改為' + ROLE_LABELS[rs.value]));
+        const state = u.disabled ? '已停用' : u.locked ? '鎖定中' : u.mustChange ? '待變更密碼' : '啟用';
+        const acts = el('div', { class: 'row-actions' }, [
+          el('button', { type: 'button', class: 'btn btn-small', onclick: async () => {
+            const pw = await askPassword('重設 ' + u.username + ' 的密碼', '設定暫時密碼後，對方下次登入必須自行變更；該帳號目前的登入會被登出。');
+            if (pw) patch(u, { password: pw }, '已重設 ' + u.username + ' 的密碼');
+          } }, '重設密碼'),
+          u.locked ? el('button', { type: 'button', class: 'btn btn-small', onclick: () => patch(u, { unlock: true }, '已解除鎖定') }, '解除鎖定') : '',
+          el('button', { type: 'button', class: 'btn btn-small', onclick: () => patch(u, { disabled: !u.disabled }, (u.disabled ? '已啟用 ' : '已停用 ') + u.username) }, u.disabled ? '啟用' : '停用'),
+          el('button', { type: 'button', class: 'btn btn-small btn-danger', onclick: async () => {
+            const c = await modal({ title: '刪除帳號 ' + u.username + '？', body: '刪除後無法復原，操作紀錄仍會保留。若只是暫時不用，建議改為「停用」。', actions: [{ id: 'ok', label: '刪除', primary: true, danger: true }, { id: 'cancel', label: '取消' }] });
+            if (c !== 'ok') return;
+            const d = await api('DELETE', '/api/users/' + u.id);
+            if (!d.ok) { toast(errMsg(d), 'error'); return; }
+            toast('已刪除 ' + u.username); loadList();
+          } }, '刪除')
+        ]);
+        tbody.appendChild(el('tr', null, [
+          el('td', null, [el('strong', { text: u.username }), el('br'), el('span', { class: 'muted', text: u.displayName || '' })]),
+          el('td', null, rs),
+          el('td', { text: state }),
+          el('td', { text: u.lastLogin || '—' }),
+          el('td', null, acts)
+        ]));
+      }
+      listBox.appendChild(el('div', { class: 'table-wrap' }, el('table', { class: 'data' }, [
+        el('caption', { class: 'muted', text: '共 ' + r.data.users.length + ' 個帳號' }),
+        el('thead', null, el('tr', null, ['帳號', '角色', '狀態', '最後登入', '動作'].map(h => el('th', { scope: 'col', text: h })))), tbody
+      ])));
+    }
+    loadList();
   }
 
   // --- 操作紀錄 ---
@@ -1168,7 +1325,7 @@
   }
 
   async function publish() {
-    if (S.role !== 'publisher') return;
+    if (!canPublish()) return;
     if (isDirty()) {
       const c = await modal({ title: '有未儲存的變更', body: '發布的是伺服器上「已儲存」的草稿。要先儲存目前的變更再發布嗎？', actions: [{ id: 'save', label: '儲存並繼續', primary: true }, { id: 'cancel', label: '取消' }] });
       if (c !== 'save') return;
@@ -1221,7 +1378,8 @@
     $('#login').hidden = true;
     $('#app').hidden = false;
     $('#role-badge').textContent = ROLE_LABELS[S.role] || S.role;
-    $('#btn-publish').hidden = S.role !== 'publisher';
+    $('#btn-publish').hidden = !canPublish();
+    $('#btn-password').hidden = !(window.CMS_BACKEND && window.CMS_BACKEND.accounts);
     renderNav();
     S.errors = validateDoc(S.draft);
     renderErrorPanel();
@@ -1249,8 +1407,25 @@
   }
 
   function init() {
-    $('#login-form').addEventListener('submit', (e) => {
+    $('#login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (window.CMS_BACKEND && window.CMS_BACKEND.accounts) {
+        const u = $('#login-user').value.trim().toLowerCase(), pw = $('#login-token').value;
+        if (!u || !pw) { $('#login-error').textContent = '請輸入帳號與密碼'; return; }
+        $('#login-error').textContent = '登入中…';
+        const r = await window.CMS_BACKEND.login(u, pw);
+        $('#login-token').value = '';
+        if (!r.ok) { $('#login-error').textContent = errMsg(r); return; }
+        if (r.data.user.mustChange) {
+          S.token = r.data.token;
+          $('#login').hidden = true;
+          const ok = await changeOwnPassword(true);
+          if (!ok) { showLogin(''); return; }
+        }
+        $('#login-error').textContent = '';
+        tryLogin(r.data.token, false);
+        return;
+      }
       const t = $('#login-token').value.trim();
       if (!t) { $('#login-error').textContent = '請輸入後台金鑰'; return; }
       $('#login-token').value = '';
@@ -1268,6 +1443,7 @@
         if (c !== 'ok') return;
       }
       S.savedJSON = JSON.stringify(S.draft);
+      if (window.CMS_BACKEND && window.CMS_BACKEND.logout) await window.CMS_BACKEND.logout(S.token);
       sessionStorage.removeItem('cmsToken');
       location.reload();
     });
@@ -1278,7 +1454,14 @@
       if (isDirty()) { e.preventDefault(); e.returnValue = ''; }
     });
 
-    if (window.CMS_BACKEND && window.CMS_BACKEND.loginHelp) {
+    if (window.CMS_BACKEND && window.CMS_BACKEND.accounts) {
+      $('#login-user-field').hidden = false;
+      $('#login-user').required = true;
+      document.querySelector('label[for=login-token]').textContent = '密碼';
+      $('#login-token').setAttribute('autocomplete', 'current-password');
+      $('#login-help').textContent = '請使用管理員為您建立的帳號登入。首次登入需變更密碼；連續 5 次錯誤會暫時鎖定 15 分鐘。';
+      $('#btn-password').addEventListener('click', () => changeOwnPassword(false));
+    } else if (window.CMS_BACKEND && window.CMS_BACKEND.loginHelp) {
       $('#login-help').textContent = window.CMS_BACKEND.loginHelp;
       document.querySelector('label[for=login-token]').textContent = 'GitHub 存取金鑰';
     }

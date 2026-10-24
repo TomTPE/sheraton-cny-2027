@@ -1,0 +1,15 @@
+{
+  "name": "sheraton-cny-cms-worker",
+  "private": true,
+  "description": "台北喜來登 2027 新春網站雲端後台 API（Cloudflare Workers）",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.1"
+  },
+  "overrides": {
+    "undici": "7.30.1"
+  }
+}
