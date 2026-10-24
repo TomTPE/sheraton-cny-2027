@@ -75,6 +75,16 @@
     return gh('PUT', REPO + '/contents/' + path, token, body);
   }
 
+  function ghReason(r) {
+    const m = r.json && r.json.message ? r.json.message : '';
+    if (r.status === 0) return '無法連線到 GitHub';
+    if (r.status === 401) return '金鑰無效或已過期';
+    if (r.status === 403 && /not accessible|permission/i.test(m)) return '金鑰權限不足（' + m + '）';
+    if (r.status === 404) return '金鑰未被授權存取此儲存庫';
+    if (r.status === 409) return '檔案已被其他人更新';
+    return 'GitHub HTTP ' + r.status + (m ? '：' + m : '');
+  }
+
   async function whoami(token) {
     const u = await gh('GET', '/user', token);
     if (u.status === 401) return fail(401, '金鑰不正確或已過期');
@@ -82,6 +92,9 @@
     const repo = await gh('GET', REPO, token);
     if (!repo.ok) return fail(403, '此金鑰無法存取儲存庫 ' + CFG.owner + '/' + CFG.repo + '，請確認已授權該儲存庫');
     if (!repo.json.permissions || !repo.json.permissions.push) return fail(403, '此帳號對儲存庫沒有寫入權限，無法上稿');
+    // 公開儲存庫即使金鑰未授權也讀得到，所以實際試寫一個不會被引用的 blob，確認金鑰真的有 Contents 寫入權限
+    const probe = await gh('POST', REPO + '/git/blobs', token, { content: 'cms write check', encoding: 'utf-8' });
+    if (!probe.ok) return fail(403, '金鑰沒有寫入權限：' + ghReason(probe) + '。請確認 fine-grained token 的 Repository access 包含 ' + CFG.owner + '/' + CFG.repo + '，且 Contents 權限為「Read and write」');
     state.login = u.json.login;
     let role = 'publisher';
     const rf = await readFile(ROLES, token);
@@ -113,8 +126,8 @@
   async function putDraft(doc, ifMatch, token) {
     if (!ifMatch) return fail(428, '缺少 If-Match：請先載入草稿再儲存');
     const cur = await readFile(DRAFT, token);
+    if (cur.error) return fail(cur.error.status || 502, '無法讀取目前草稿：' + ghReason(cur.error));
     const curEtag = cur.missing ? 'new' : cur.sha;
-    if (cur.error) return fail(502, '無法讀取目前草稿');
     if (ifMatch !== curEtag) {
       let meta = {};
       try { meta = JSON.parse(cur.text).meta || {}; } catch (e) { /* 忽略 */ }
@@ -127,7 +140,7 @@
     if (new Blob([out]).size > MAX_DOC) return fail(413, '文件超過 2 MB 上限');
     const w = await writeFile(DRAFT, token, b64encode(out), 'CMS 草稿：' + state.login, cur.missing ? null : cur.sha);
     if (w.status === 409 || w.status === 422) return fail(409, '草稿已被其他人更新，請重新載入後再編輯');
-    if (!w.ok) return fail(w.status || 502, '儲存失敗（GitHub HTTP ' + w.status + '）');
+    if (!w.ok) return fail(w.status || 502, '儲存失敗：' + ghReason(w));
     const tag = w.json.content.sha;
     return res(200, { ok: true, etag: tag, meta: doc.meta }, tag);
   }
@@ -146,7 +159,7 @@
     doc.meta.updatedAt = nowIso();
     doc.meta.updatedBy = state.login;
     const w = await writeFile(CONTENT, token, b64encode(dump(doc)), 'CMS 發布 rev ' + rev + '：' + state.login, pub.sha);
-    if (!w.ok) return fail(w.status || 502, '發布失敗（GitHub HTTP ' + w.status + '）');
+    if (!w.ok) return fail(w.status || 502, '發布失敗：' + ghReason(w));
     return res(200, { ok: true, revision: rev, updatedAt: doc.meta.updatedAt, note: '已送出，約 1–2 分鐘後線上網站更新' });
   }
 
@@ -178,7 +191,7 @@
     doc.meta.updatedBy = state.login;
     const cur = await readFile(DRAFT, token);
     const w = await writeFile(DRAFT, token, b64encode(dump(doc)), 'CMS 還原 rev ' + body.revision + ' 至草稿：' + state.login, cur.missing ? null : cur.sha);
-    if (!w.ok) return fail(w.status || 502, '還原失敗（GitHub HTTP ' + w.status + '）');
+    if (!w.ok) return fail(w.status || 502, '還原失敗：' + ghReason(w));
     return res(200, { ok: true, revision: body.revision, etag: w.json.content.sha }, w.json.content.sha);
   }
 
@@ -199,7 +212,7 @@
     const exists = await gh('GET', REPO + '/contents/' + rel + '?ref=' + encodeURIComponent(BRANCH), token);
     if (!exists.ok) {
       const w = await writeFile(rel, token, b64encodeBytes(bytes), 'CMS 上傳：' + rel + ' ← ' + String(filename || '').slice(0, 80) + '（' + state.login + '）');
-      if (!w.ok) return fail(w.status || 502, '上傳失敗（GitHub HTTP ' + w.status + '）');
+      if (!w.ok) return fail(w.status || 502, '上傳失敗：' + ghReason(w));
     }
     return res(201, { path: rel, bytes: bytes.length, type: ext });
   }
