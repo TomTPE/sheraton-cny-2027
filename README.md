@@ -48,3 +48,12 @@ python3 server.py --port 8777
 - 雲端後台：https://tomtpe.github.io/sheraton-cny-2027/admin/（以 GitHub fine-grained token 登入）
 - 資料來源、電話、訂位連結、照片、SEO 與 GA4 設定：見 [docs/資料盤點與雲端後台.md](docs/資料盤點與雲端後台.md)
 - 本機後台（server.py）仍可使用，未設定 CMS_CONFIG 時自動使用本機 API。
+
+## 手冊（2026-10-25）
+
+| 對象 | 文件 |
+|---|---|
+| 上稿人員 | [docs/手冊-後台操作.md](docs/手冊-後台操作.md) |
+| 行銷、業務、客服 | [docs/手冊-前台網站說明.md](docs/手冊-前台網站說明.md) |
+| 維運與開發 | [docs/手冊-技術維運.md](docs/手冊-技術維運.md) |
+| 上線負責人、IT | [docs/上線準備清單.md](docs/上線準備清單.md) |
