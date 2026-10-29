@@ -35,6 +35,10 @@ $G functions deploy sheraton-cny-billing-cap --gen2 --region=$REGION --project=$
   --service-account=billing-cap@$WEB.iam.gserviceaccount.com --max-instances=1 --memory=256Mi \
   --set-env-vars="^;^ALLOWED_PROJECTS=$WEB,$DEMO" --quiet
 
+# 觸發用服務帳號必須能呼叫函式（gen2 函式底層是 Cloud Run），否則預算通知會被 403 擋下
+$G run services add-iam-policy-binding sheraton-cny-billing-cap --region=$REGION --project=$WEB \
+  --member="serviceAccount:billing-cap@$WEB.iam.gserviceaccount.com" --role=roles/run.invoker --format=none
+
 echo "5/5 建立預算（50%、90%、100% 通知；100% 自動停用計費）"
 for P in $WEB $DEMO; do
   NAME="$P 上限 NT\$$LIMIT"
