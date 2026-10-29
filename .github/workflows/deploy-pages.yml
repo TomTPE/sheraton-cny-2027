@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     # cms/draft.json（草稿）不在清單內：儲存草稿不會觸發部署，只有「發布」（改寫 data/content.json）才會上線
-    paths: ["index.html", "assets/**", "data/content.json", "admin/**", "scripts/**", "server.py", ".github/workflows/deploy-pages.yml"]
+    paths: ["index.html", "assets/**", "data/content.json", "admin/**", "scripts/**", "server.py", "deploy/cloud-run/**", ".github/workflows/deploy-pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -51,3 +51,31 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # GCP Cloud Run：與 GitHub Pages 同步部署。以 Workload Identity Federation 免金鑰登入（只信任本儲存庫 main 分支）。
+  # 需先執行 deploy/gcp/setup-github-deploy.sh 設定儲存庫變數；未設定時自動略過。
+  # 不帶 --allow-unauthenticated／--no-allow-unauthenticated，沿用服務既有的存取設定。
+  deploy-gcp:
+    needs: build
+    if: ${{ vars.GCP_WIF_PROVIDER != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 建置 Cloud Run 版本（與 Pages 相同內容，含後台）
+        env:
+          CMS_API: ${{ vars.CMS_API }}
+        run: |
+          python3 scripts/build.py --env test --out deploy/cloud-run/public --with-admin --repo "${{ github.repository }}" --branch main
+          python3 scripts/check_dist.py deploy/cloud-run/public --allow-admin
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: 部署到 Cloud Run（asia-east1）
+        run: gcloud run deploy sheraton-cny-web --source deploy/cloud-run --project "${{ vars.GCP_PROJECT }}" --region asia-east1 --port 8080 --memory 256Mi --max-instances 5 --quiet

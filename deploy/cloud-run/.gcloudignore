@@ -1,0 +1,2 @@
+# 部署內容由 CI 在 public/ 建置後一併上傳（不沿用 .gitignore）
+README.md

@@ -8,3 +8,6 @@ assets/uploads/
 dist/
 __pycache__/
 .DS_Store
+
+# Cloud Run 建置輸出
+deploy/cloud-run/public/
